@@ -1,0 +1,2216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V3D Printlab by Kelvaris Technologies</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+ --bg-0:#e9e3f5;
+ --bg-1:#d9d1eb;
+ --bg-2:#c9bfdf;
+ --steel:#b8add2;
+ --steel-2:#a79bc5;
+ --line: rgba(67,45,105,0.18);
+ --line-2: rgba(67,45,105,0.11);
+ --cyan: #6847d8;
+ --cyan-dim: #8b78d2;
+ --amber: #e36b4f;
+ --text-0:#211a35;
+ --text-1:#5c536f;
+ --text-2:#817894;
+ }
+ *{margin:0;padding:0;box-sizing:border-box;}
+ html{scroll-behavior:smooth;}
+ body{
+ width:100%;
+ background:var(--bg-0);
+ font-family:'Inter',sans-serif;
+ color:var(--text-0);
+ overflow-x:hidden;
+ }
+::selection{ background:var(--cyan); color:var(--bg-0); }
+
+ a{ color:inherit; text-decoration:none; }
+ section{ position:relative; }
+.wrap{ max-width:1320px; margin:0 auto; padding:0 56px; }
+
+ /* ===================== NAV ===================== */
+ nav{
+ position:fixed; top:0; left:0; right:0; z-index:100;
+ display:flex; align-items:center; justify-content:space-between;
+ padding:28px 56px;
+ transition:padding.4s ease, background.4s ease, border-color.4s ease;
+ border-bottom:1px solid transparent;
+ }
+ nav.scrolled{
+ padding:18px 56px;
+ background:rgba(233,227,245,0.90);
+ backdrop-filter:blur(14px);
+ border-bottom:1px solid var(--line);
+ }
+.logo{
+ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:20px;
+ letter-spacing:0.22em; color:var(--text-0); display:flex; align-items:center; gap:10px;
+ }
+.logo.mark{
+ width:9px;height:9px;border-radius:1px;background:var(--cyan);
+ box-shadow:0 0 10px 2px rgba(95,227,255,0.7);
+ }
+
+.brand-lockup{
+ gap:12px;
+ letter-spacing:0;
+ min-width:0;
+ }
+.brand-lockup > img{
+ width:46px;
+ height:46px;
+ object-fit:contain;
+ flex:0 0 46px;
+ display:block;
+ border-radius:8px;
+ filter:drop-shadow(0 4px 12px rgba(67,45,105,0.16));
+ }
+.brand-copy{
+ display:flex;
+ flex-direction:column;
+ justify-content:center;
+ line-height:1.05;
+ white-space:nowrap;
+ }
+.brand-copy strong{
+ font-family:'Space Grotesk',sans-serif;
+ font-size:17px;
+ font-weight:700;
+ letter-spacing:0.06em;
+ color:var(--text-0);
+ }
+.brand-copy span{
+ margin-top:5px;
+ font-family:'JetBrains Mono',monospace;
+ font-size:8px;
+ font-weight:600;
+ letter-spacing:0.13em;
+ color:var(--text-1);
+ }
+.footer-brand-lockup > img{
+ width:48px;
+ height:48px;
+ flex-basis:48px;
+ }
+.footer-brand-lockup.brand-copy strong{
+ font-size:18px;
+ }
+
+ @media (max-width:880px){
+.brand-copy strong{font-size:15px;}
+.brand-copy span{font-size:7px; letter-spacing:0.1em;}
+.brand-lockup > img{width:38px;height:38px;flex-basis:38px;}
+ }
+
+ /* Large brand mark layered above the hero's 3D motion */
+.hero-brand{
+ position:absolute; z-index:10; top:50%; left:50%;
+ transform:translate(-50%,-50%);
+ font-family:'Space Grotesk',sans-serif; font-weight:700;
+ font-size:clamp(48px, 8vw, 128px);
+ letter-spacing:0.02em; line-height:1;
+ color:var(--text-0);
+ text-align:center;
+ white-space:nowrap;
+ pointer-events:none;
+ text-shadow:0 8px 30px rgba(54,38,94,0.18);
+ opacity:0;
+ animation:riseIn 1.2s.4s cubic-bezier(.19,1,.22,1) forwards;
+ }
+
+ @media (max-width:880px){
+.hero-brand{ font-size:clamp(32px, 11vw, 56px); white-space:normal; padding:0 24px; letter-spacing:0.01em; }
+ }
+.navlinks{
+ display:flex; flex-shrink:0; gap:40px;
+ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.08em;
+ color:var(--text-1); text-transform:uppercase;
+ }
+.navlinks a{ cursor:pointer; transition:color.3s; position:relative; }
+.navlinks a:hover{ color:var(--cyan); }
+.nav-cta{
+ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.1em;
+ text-transform:uppercase; color:var(--text-0);
+ border:1px solid var(--line); padding:10px 20px;
+ transition:border-color.3s, background.3s;
+ }
+.nav-cta:hover{ border-color:var(--cyan); background:rgba(95,227,255,0.06); }
+
+ @media (max-width:980px){
+.navlinks{ display:none; }
+ }
+
+ /* ===================== HERO ===================== */
+ #hero{ height:100vh; min-height:720px; overflow:hidden; }
+ #scene{ position:absolute; inset:0; z-index:1; }
+ #scene canvas{ display:block; }
+
+.vignette{
+ position:absolute; inset:0; z-index:2; pointer-events:none;
+ background:
+ radial-gradient(ellipse 55% 75% at 78% 50%, rgba(104,71,216,0.16), transparent 62%),
+ radial-gradient(ellipse 75% 85% at 15% 45%, rgba(255,255,255,0.20), transparent 62%),
+ linear-gradient(180deg, rgba(255,255,255,0.05), transparent 25%, transparent 78%, rgba(104,71,216,0.10) 100%);
+ }
+.grain{
+ position:absolute; inset:0; z-index:3; pointer-events:none; opacity:0.035; mix-blend-mode:overlay;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+ }
+
+ main.hero-main{
+ position:absolute; z-index:10;
+ top:0; left:0; height:100%;
+ display:flex; flex-direction:column; justify-content:center;
+ padding:0 0 0 56px;
+ max-width:640px;
+ }
+.eyebrow{
+ display:flex; align-items:center; gap:12px;
+ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.18em;
+ color:var(--cyan); text-transform:uppercase; margin-bottom:26px;
+ opacity:0; animation:riseIn.9s.3s cubic-bezier(.19,1,.22,1) forwards;
+ }
+.eyebrow::before{ content:''; width:26px; height:1px; background:var(--cyan); }
+ h1{
+ font-family:'Space Grotesk',sans-serif; font-weight:600;
+ font-size:clamp(40px, 4.6vw, 66px); line-height:1.03; letter-spacing:-0.01em;
+ color:var(--text-0); margin-bottom:26px;
+ }
+ h1.line{ display:block; overflow:hidden; }
+ h1.line span{ display:block; transform:translateY(110%); animation:riseIn 1s cubic-bezier(.19,1,.22,1) forwards; }
+ h1.line:nth-child(1) span{ animation-delay:.45s; }
+ h1.line:nth-child(2) span{ animation-delay:.58s; color:var(--text-1); font-weight:300; }
+
+.subtitle{
+ font-family:'Inter',sans-serif; font-weight:300; font-size:16px; line-height:1.7;
+ color:var(--text-1); max-width:420px; margin-bottom:44px;
+ opacity:0; animation:riseIn.9s.8s cubic-bezier(.19,1,.22,1) forwards;
+ }
+.subtitle b{ color:var(--text-0); font-weight:500; }
+
+.cta-row{ display:flex; align-items:center; gap:28px; opacity:0; animation:riseIn.9s.95s cubic-bezier(.19,1,.22,1) forwards; }
+.btn{
+ position:relative; font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:0.12em;
+ text-transform:uppercase; color:var(--bg-0); background:var(--text-0);
+ padding:17px 30px; border:none; cursor:pointer;
+ display:inline-flex; align-items:center; gap:12px;
+ transition:transform.35s cubic-bezier(.19,1,.22,1), box-shadow.35s;
+ }
+.btn:hover{ transform:translateY(-2px); box-shadow:0 12px 30px -8px rgba(95,227,255,0.35); }
+.btn svg{ width:13px; height:13px; transition:transform.35s; }
+.btn:hover svg{ transform:translateX(4px); }
+
+.link-ghost{
+ font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:0.1em;
+ color:var(--text-1); text-transform:uppercase; cursor:pointer;
+ border-bottom:1px solid var(--line); padding-bottom:3px;
+ transition:color.3s, border-color.3s;
+ }
+.link-ghost:hover{ color:var(--text-0); border-color:var(--text-1); }
+
+ @keyframes riseIn{ to{ opacity:1; transform:translateY(0); } }
+
+
+.hero-copy{
+ position:absolute;
+ z-index:10;
+ left:clamp(28px, 5.5vw, 88px);
+ top:50%;
+ transform:translateY(-50%);
+ width:min(560px, 42vw);
+ pointer-events:none;
+ }
+.hero-kicker{
+ display:flex;
+ align-items:center;
+ gap:12px;
+ font-family:'JetBrains Mono',monospace;
+ font-size:10px;
+ letter-spacing:.18em;
+ color:var(--cyan);
+ text-transform:uppercase;
+ margin-bottom:24px;
+ opacity:0;
+ animation:heroCopyIn.9s.25s cubic-bezier(.19,1,.22,1) forwards;
+ }
+.hero-kicker-line{
+ width:34px;
+ height:1px;
+ background:var(--cyan);
+ box-shadow:0 0 12px rgba(95,227,255,.35);
+ }
+.hero-copy h1{
+ font-family:'Space Grotesk',sans-serif;
+ font-weight:600;
+ font-size:clamp(42px, 5vw, 72px);
+ line-height:1.02;
+ letter-spacing:-.035em;
+ color:var(--text-0);
+ margin:0 0 24px;
+ text-shadow:0 8px 28px rgba(35,25,65,.08);
+ opacity:0;
+ animation:heroCopyIn 1s.4s cubic-bezier(.19,1,.22,1) forwards;
+ }
+.hero-copy h1 span{
+ color:var(--cyan);
+ font-weight:400;
+ }
+.hero-copy > p{
+ max-width:475px;
+ margin:0 0 32px;
+ font-family:'Inter',sans-serif;
+ font-size:16px;
+ font-weight:300;
+ line-height:1.7;
+ color:var(--text-1);
+ opacity:0;
+ animation:heroCopyIn.9s.58s cubic-bezier(.19,1,.22,1) forwards;
+ }
+.hero-actions{
+ display:flex;
+ align-items:center;
+ gap:24px;
+ pointer-events:auto;
+ opacity:0;
+ animation:heroCopyIn.9s.72s cubic-bezier(.19,1,.22,1) forwards;
+ }
+.hero-btn{
+ border:0;
+ background:var(--text-0);
+ color:var(--bg-0);
+ padding:15px 22px;
+ font-family:'JetBrains Mono',monospace;
+ font-size:11px;
+ letter-spacing:.11em;
+ text-transform:uppercase;
+ cursor:pointer;
+ display:inline-flex;
+ align-items:center;
+ gap:16px;
+ transition:transform.35s cubic-bezier(.19,1,.22,1), box-shadow.35s, background.35s;
+ }
+.hero-btn span{
+ font-size:17px;
+ line-height:0;
+ transition:transform.35s;
+ }
+.hero-btn:hover{
+ transform:translateY(-3px);
+ box-shadow:0 14px 34px rgba(48,35,88,.18);
+ background:#30284d;
+ }
+.hero-btn:hover span{ transform:translateX(5px); }
+.hero-text-link{
+ font-family:'JetBrains Mono',monospace;
+ font-size:10px;
+ letter-spacing:.12em;
+ text-transform:uppercase;
+ color:var(--text-1);
+ border-bottom:1px solid var(--line);
+ padding-bottom:5px;
+ transition:color.3s,border-color.3s;
+ }
+.hero-text-link:hover{
+ color:var(--cyan);
+ border-color:var(--cyan);
+ }
+.hero-text-link span{ margin-left:5px; }
+.hero-trust{
+ display:flex;
+ align-items:center;
+ gap:12px;
+ margin-top:34px;
+ font-family:'JetBrains Mono',monospace;
+ font-size:8px;
+ letter-spacing:.16em;
+ color:var(--text-2);
+ opacity:0;
+ animation:heroCopyIn.9s.9s cubic-bezier(.19,1,.22,1) forwards;
+ }
+.hero-trust i{
+ width:3px;
+ height:3px;
+ border-radius:50%;
+ background:var(--cyan);
+ opacity:.7;
+ }
+ @keyframes heroCopyIn{
+ from{opacity:0; transform:translate3d(0,24px,0);}
+ to{opacity:1; transform:translate3d(0,0,0);}
+ }
+
+ @media (max-width:1100px){
+.hero-copy{ width:min(500px,48vw); }
+.hero-copy h1{ font-size:clamp(38px,5vw,60px); }
+ }
+ @media (max-width:760px){
+.hero-copy{
+ left:24px;
+ right:24px;
+ width:auto;
+ top:auto;
+ bottom:92px;
+ transform:none;
+ padding-right:12px;
+ }
+.hero-copy h1{ font-size:clamp(34px,10vw,52px); }
+.hero-copy > p{ font-size:14px; max-width:420px; margin-bottom:22px; }
+.hero-trust{ display:none; }
+.hero-kicker{ margin-bottom:16px; }
+.hero-actions{ gap:18px; }
+ }
+.hud{
+ position:absolute; z-index:10; bottom:40px; left:56px; display:flex; gap:36px;
+ font-family:'JetBrains Mono',monospace;
+ opacity:0; animation:riseIn 1s 1.3s cubic-bezier(.19,1,.22,1) forwards;
+ }
+.hud.stat{ min-width:92px; }
+.hud.stat.label{ font-size:9px; letter-spacing:0.14em; color:var(--text-2); text-transform:uppercase; margin-bottom:6px; }
+.hud.stat.value{ font-size:15px; color:var(--text-0); font-weight:400; }
+.hud.stat.value.live{ color:var(--cyan); }
+.hud.divider{ width:1px; background:var(--line); }
+
+.side-tag{
+ position:absolute; z-index:10; top:50%; right:56px; transform:translateY(-50%) rotate(90deg) translateX(50%);
+ transform-origin:right center;
+ font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.3em;
+ color:var(--text-2); text-transform:uppercase; white-space:nowrap;
+ opacity:0; animation:fadeSlow 1.5s 1.6s forwards;
+ }
+ @keyframes fadeSlow{ to{ opacity:1; } }
+
+.scanline{
+ position:absolute; z-index:9; right:0; height:2px; width:100%; top:30%;
+ pointer-events:none; background:linear-gradient(90deg, transparent, rgba(95,227,255,0.35), transparent);
+ animation:scan 6s ease-in-out infinite; opacity:0.4;
+ }
+ @keyframes scan{ 0%,100%{ top:20%; opacity:0; } 50%{ top:75%; opacity:0.5; } }
+
+.scroll-cue{
+ position:absolute; z-index:10; bottom:44px; right:56px;
+ display:flex; flex-direction:column; align-items:center; gap:10px;
+ font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.2em; color:var(--text-2);
+ opacity:0; animation:riseIn 1s 1.6s forwards;
+ }
+.scroll-cue.rail{ width:1px; height:40px; background:var(--line); position:relative; overflow:hidden; }
+.scroll-cue.rail::after{
+ content:''; position:absolute; top:-40px; left:0; width:100%; height:40%; background:var(--cyan);
+ animation:railDrop 2.2s ease-in-out infinite;
+ }
+ @keyframes railDrop{ 0%{ top:-40%; } 100%{ top:100%; } }
+
+ #loading{
+ position:fixed; inset:0; z-index:1000; background:var(--bg-0);
+ display:flex; align-items:center; justify-content:center;
+ transition:opacity 1s ease, visibility 1s;
+ font-family:'JetBrains Mono',monospace; color:var(--text-1); font-size:11px; letter-spacing:0.2em;
+ }
+ #loading span{ color:var(--cyan); }
+
+ /* ===================== SECTION HEADERS (shared) ===================== */
+.section-head{ margin-bottom:64px; max-width:640px; }
+.section-head.tag{
+ display:flex; align-items:center; gap:12px;
+ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.18em;
+ color:var(--cyan); text-transform:uppercase; margin-bottom:22px;
+ }
+.section-head.tag::before{ content:''; width:26px; height:1px; background:var(--cyan); }
+.section-head h2{
+ font-family:'Space Grotesk',sans-serif; font-weight:500; font-size:clamp(28px,3.2vw,42px);
+ line-height:1.15; letter-spacing:-0.01em; color:var(--text-0); margin-bottom:20px;
+ }
+.section-head p{ font-family:'Inter',sans-serif; font-weight:300; font-size:15px; line-height:1.7; color:var(--text-1); max-width:480px; }
+
+.reveal{ opacity:0; transform:translateY(28px); transition:opacity.9s cubic-bezier(.19,1,.22,1), transform.9s cubic-bezier(.19,1,.22,1); }
+.reveal.in{ opacity:1; transform:translateY(0); }
+
+ /* ===================== STATS STRIP ===================== */
+ #stats{
+ border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+ background:var(--bg-1);
+ }
+.stats-row{
+ display:grid; grid-template-columns:repeat(4,1fr);
+ padding:56px 0;
+ }
+.stat-block{
+ padding:0 40px; border-left:1px solid var(--line-2);
+ }
+.stat-block:first-child{ border-left:none; padding-left:0; }
+.stat-block.num{
+ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:clamp(30px,3vw,44px);
+ color:var(--text-0); display:flex; align-items:baseline; gap:4px; margin-bottom:10px;
+ }
+.stat-block.num.unit{ font-size:16px; color:var(--cyan); font-weight:500; }
+.stat-block.cap{ font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:0.1em; color:var(--text-2); text-transform:uppercase; }
+
+ @media (max-width:880px){
+.stats-row{ grid-template-columns:repeat(2,1fr); row-gap:36px; }
+.stat-block:nth-child(3){ border-left:none; }
+ }
+
+ /* ===================== FEATURES ===================== */
+ #features{ padding:150px 0 140px; background:var(--bg-0); }
+.feature-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line-2); border:1px solid var(--line-2); }
+.feature-card{
+ background:var(--bg-0); padding:44px 38px; transition:background.4s ease;
+ display:flex; flex-direction:column; gap:22px;
+ }
+.feature-card:hover{ background:var(--bg-1); }
+.feature-card .ic{ width:38px; height:38px; display:flex; align-items:center; justify-content:center; flex:0 0 38px; }
+.feature-card .ic svg{ width:100%; height:100%; display:block; }
+.feature-card.ic svg{ width:100%; height:100%; stroke:var(--cyan); fill:none; stroke-width:1.1; }
+.feature-card.num{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-2); letter-spacing:0.1em; }
+.feature-card h3{ font-family:'Space Grotesk',sans-serif; font-weight:500; font-size:19px; color:var(--text-0); }
+.feature-card p{ font-family:'Inter',sans-serif; font-weight:300; font-size:14px; line-height:1.7; color:var(--text-1); }
+
+ @media (max-width:980px){
+.feature-grid{ grid-template-columns:1fr; }
+ }
+
+ /* ===================== PROCESS ===================== */
+ #process{ padding:140px 0; background:var(--bg-1); border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+.process-list{ display:flex; flex-direction:column; }
+.process-row{
+ display:grid; grid-template-columns:100px 1fr 1fr; align-items:center; gap:40px;
+ padding:38px 0; border-top:1px solid var(--line-2);
+ }
+.process-row:last-child{ border-bottom:1px solid var(--line-2); }
+.process-row.idx{ font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--cyan); letter-spacing:0.1em; }
+.process-row h4{ font-family:'Space Grotesk',sans-serif; font-weight:500; font-size:22px; color:var(--text-0); }
+.process-row p{ font-family:'Inter',sans-serif; font-weight:300; font-size:14px; line-height:1.7; color:var(--text-1); }
+.process-row.diagram{ justify-self:end; }
+.process-row.diagram svg{ width:56px; height:56px; stroke:var(--text-1); fill:none; stroke-width:1; transition:stroke.4s; }
+.process-row:hover.diagram svg{ stroke:var(--cyan); }
+
+ @media (max-width:880px){
+.process-row{ grid-template-columns:1fr; gap:14px; }
+.process-row.diagram{ display:none; }
+ }
+
+ /* ===================== MATERIALS ===================== */
+ #materials{ padding:150px 0; background:var(--bg-0); }
+.material-strip{
+ display:grid; grid-template-columns:repeat(5,1fr); border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+ }
+.material-chip{
+ padding:32px 24px; border-left:1px solid var(--line-2); cursor:default;
+ transition:background.35s ease;
+ position:relative; overflow:hidden;
+ }
+.material-chip:first-child{ border-left:none; }
+.material-chip:hover{ background:var(--bg-1); }
+.material-chip.swatch{ width:100%; height:64px; margin-bottom:20px; border-radius:2px; }
+.material-chip.name{ font-family:'Space Grotesk',sans-serif; font-weight:500; font-size:15px; color:var(--text-0); margin-bottom:8px; }
+.material-chip.spec{ font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text-2); letter-spacing:0.06em; line-height:1.8; }
+
+ @media (max-width:980px){
+.material-strip{ grid-template-columns:repeat(2,1fr); }
+.material-chip:nth-child(3){ border-left:none; }
+ }
+
+ /* ===================== SHOWCASE ===================== */
+ #showcase{ padding:150px 0; background:var(--bg-1); border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+.showcase-grid{ display:grid; grid-template-columns:1.4fr 1fr; gap:1px; background:var(--line-2); }
+.showcase-panel{
+ background:var(--bg-0); aspect-ratio:4/3; position:relative; overflow:hidden;
+ display:flex; align-items:flex-end; padding:30px;
+ }
+.showcase-panel canvas,.showcase-panel.fallback{ position:absolute; inset:0; }
+.showcase-panel.fallback{
+ background:
+ radial-gradient(circle at 30% 20%, rgba(104,71,216,0.24), transparent 55%),
+ radial-gradient(circle at 75% 75%, rgba(227,107,79,0.16), transparent 50%),
+ linear-gradient(135deg, #cfc6e3, #afa3ca);
+ }
+.showcase-panel.label{
+ position:relative; z-index:2;
+ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.1em; color:var(--text-1);
+ text-transform:uppercase;
+ }
+.showcase-panel.label b{ color:var(--text-0); display:block; font-family:'Space Grotesk',sans-serif; font-size:17px; font-weight:500; letter-spacing:0; margin-top:6px; text-transform:none; }
+.showcase-stack{ display:grid; grid-template-rows:1fr 1fr; gap:1px; background:var(--line-2); }
+
+ @media (max-width:980px){
+.showcase-grid{ grid-template-columns:1fr; }
+ }
+
+ /* ===================== QUOTE CALCULATOR ===================== */
+ #quote-calc{ padding:150px 0; background:var(--bg-0); border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+.quote-layout{ display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--line-2); border:1px solid var(--line-2); }
+.quote-form,.quote-result{ background:var(--bg-1); padding:48px; }
+.field-row{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:20px; }
+.field{ display:flex; flex-direction:column; gap:8px; }
+.field.full{ grid-column:1/-1; }
+.field label{ font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.1em; color:var(--text-2); text-transform:uppercase; }
+.field input,.field select{
+ background:var(--bg-0); border:1px solid var(--line); color:var(--text-0);
+ font-family:'Inter',sans-serif; font-size:14px; padding:12px 14px; outline:none;
+ transition:border-color.3s;
+ }
+.field input:focus,.field select:focus{ border-color:var(--cyan); }
+.field select{ appearance:none; cursor:pointer; }
+.radio-group{ display:flex; gap:10px; flex-wrap:wrap; }
+.radio-chip{
+ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.06em; text-transform:uppercase;
+ color:var(--text-1); border:1px solid var(--line); padding:10px 16px; cursor:pointer;
+ transition:all.3s; user-select:none;
+ }
+.radio-chip input{ display:none; }
+.radio-chip.active{ color:var(--bg-0); background:var(--cyan); border-color:var(--cyan); }
+
+.quote-result{ display:flex; flex-direction:column; justify-content:center; }
+.quote-result.cap{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.14em; color:var(--text-2); text-transform:uppercase; margin-bottom:14px; }
+.quote-price{ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:56px; color:var(--text-0); margin-bottom:6px; display:flex; align-items:baseline; gap:6px; }
+.quote-price.cur{ font-size:26px; color:var(--cyan); }
+.quote-eta{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-1); margin-bottom:34px; }
+.quote-breakdown{ display:flex; flex-direction:column; gap:0; border-top:1px solid var(--line-2); }
+.quote-breakdown.row{
+ display:flex; justify-content:space-between; padding:14px 0; border-bottom:1px solid var(--line-2);
+ font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--text-1);
+ }
+.quote-breakdown.row span:last-child{ color:var(--text-0); }
+.quote-note{ font-family:'Inter',sans-serif; font-weight:300; font-size:12px; color:var(--text-2); margin-top:24px; line-height:1.6; }
+
+ @media (max-width:980px){
+.quote-layout{ grid-template-columns:1fr; }
+.quote-form,.quote-result{ padding:32px 24px; }
+.field-row{ grid-template-columns:1fr 1fr; }
+ }
+ @media (max-width:520px){
+.field-row{ grid-template-columns:1fr; }
+.quote-price{ font-size:42px; }
+ }
+
+ /* ===================== CONTACT ===================== */
+ #contact{ padding:150px 0; background:var(--bg-1); }
+.contact-layout{ display:grid; grid-template-columns:0.8fr 1.2fr; gap:80px; }
+.contact-info.info-row{ display:flex; gap:16px; padding:22px 0; border-top:1px solid var(--line-2); }
+.contact-info.info-row:last-child{ border-bottom:1px solid var(--line-2); }
+.contact-info.info-row.k{ font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.1em; color:var(--text-2); text-transform:uppercase; min-width:90px; padding-top:2px; }
+.contact-info.info-row.v{ font-family:'Inter',sans-serif; font-size:14.5px; color:var(--text-0); font-weight:300; }
+.contact-form-el{ display:flex; flex-direction:column; gap:20px; }
+.contact-form-el textarea{
+ background:transparent; border:1px solid var(--line); color:var(--text-0);
+ font-family:'Inter',sans-serif; font-size:14px; padding:14px; outline:none; resize:vertical; min-height:120px;
+ transition:border-color.3s;
+ }
+.contact-form-el textarea:focus{ border-color:var(--cyan); }
+.form-msg{
+ font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:0.04em;
+ padding:14px 16px; border:1px solid var(--line); display:none;
+ }
+.form-msg.show{ display:block; }
+.form-msg.success{ color:var(--cyan); border-color:var(--cyan-dim); }
+.form-msg.error{ color:var(--amber); border-color:#5a3a20; }
+.submit-btn{
+ font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:0.12em; text-transform:uppercase;
+ color:var(--bg-0); background:var(--text-0); border:none; padding:17px 30px; cursor:pointer;
+ display:inline-flex; align-items:center; gap:12px; width:fit-content;
+ transition:transform.35s cubic-bezier(.19,1,.22,1), box-shadow.35s, opacity.3s;
+ }
+.submit-btn:hover{ transform:translateY(-2px); box-shadow:0 12px 30px -8px rgba(95,227,255,0.35); }
+.submit-btn:disabled{ opacity:0.5; cursor:not-allowed; transform:none; box-shadow:none; }
+
+ @media (max-width:980px){
+.contact-layout{ grid-template-columns:1fr; gap:44px; }
+ }
+ @media (max-width:880px){
+ #quote-calc, #contact{ padding:90px 0; }
+ }
+
+ #testimonial{ padding:150px 0; background:var(--bg-0); text-align:left; }
+.quote-mark{ font-family:'Space Grotesk',sans-serif; font-size:70px; color:var(--cyan-dim); line-height:0.5; margin-bottom:20px; }
+ blockquote{
+ font-family:'Space Grotesk',sans-serif; font-weight:400; font-size:clamp(24px,2.6vw,34px);
+ line-height:1.45; color:var(--text-0); max-width:900px; letter-spacing:-0.01em; margin-bottom:36px;
+ }
+.quote-attr{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-1); letter-spacing:0.06em; }
+.quote-attr b{ color:var(--text-0); }
+
+ /* ===================== FINAL CTA ===================== */
+ #final-cta{
+ padding:170px 0; background:var(--bg-1); border-top:1px solid var(--line);
+ position:relative; overflow:hidden;
+ }
+ #final-cta::before{
+ content:''; position:absolute; top:50%; left:50%; width:900px; height:900px;
+ background:radial-gradient(circle, rgba(95,227,255,0.08), transparent 65%);
+ transform:translate(-50%,-50%); pointer-events:none;
+ }
+.cta-wrap{ position:relative; z-index:2; text-align:center; max-width:720px; margin:0 auto; }
+.cta-wrap.tag{ justify-content:center; }
+.cta-wrap h2{ font-size:clamp(32px,4vw,52px); }
+.cta-wrap p{ margin:0 auto 44px; }
+.cta-buttons{ display:flex; justify-content:center; gap:28px; }
+
+ /* ===================== FOOTER ===================== */
+ footer{ background:var(--bg-0); border-top:1px solid var(--line); padding:80px 0 36px; }
+.footer-top{ display:grid; grid-template-columns:1.4fr repeat(3,1fr); gap:40px; padding-bottom:70px; }
+.footer-brand.logo{ margin-bottom:20px; }
+.footer-brand p{ font-family:'Inter',sans-serif; font-weight:300; font-size:13.5px; color:var(--text-2); line-height:1.7; max-width:260px; }
+.footer-col h5{ font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:0.14em; color:var(--text-2); text-transform:uppercase; margin-bottom:20px; }
+.footer-col a{ display:block; font-family:'Inter',sans-serif; font-weight:300; font-size:14px; color:var(--text-1); margin-bottom:14px; transition:color.3s; width:fit-content; }
+.footer-col a:hover{ color:var(--cyan); }
+.footer-bottom{
+ display:flex; justify-content:space-between; align-items:center; padding-top:30px; border-top:1px solid var(--line-2);
+ font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--text-2); letter-spacing:0.06em;
+ }
+ @media (max-width:880px){
+.footer-top{ grid-template-columns:1fr 1fr; }
+.footer-bottom{ flex-direction:column; gap:14px; align-items:flex-start; }
+ }
+
+ @media (max-width:880px){
+.wrap{ padding:0 22px; }
+ nav{ padding:20px 22px; }
+.nav-cta{ padding:9px 16px; font-size:10px; }
+.logo{ font-size:13px; }
+
+ #hero{ min-height:100svh; height:100svh; }
+ main.hero-main{
+ padding:0 22px; max-width:100%;
+ justify-content:flex-end;
+ padding-bottom:150px;
+ }
+.eyebrow{ font-size:10px; margin-bottom:18px; }
+ h1{ font-size:clamp(32px,9vw,44px); margin-bottom:18px; }
+.subtitle{ font-size:14px; margin-bottom:32px; max-width:100%; }
+.cta-row{ flex-wrap:wrap; gap:18px; row-gap:16px; }
+.btn{ padding:15px 24px; font-size:11px; }
+
+.hud{ left:22px; right:22px; bottom:26px; gap:0; justify-content:space-between; }
+.hud.stat{ min-width:0; }
+.hud.stat.label{ font-size:8px; }
+.hud.stat.value{ font-size:12px; }
+.side-tag,.scroll-cue{ display:none; }
+
+.section-head{ margin-bottom:44px; }
+.section-head h2{ font-size:clamp(24px,6vw,32px); }
+.section-head p{ font-size:14px; }
+
+ #features{ padding:100px 0; }
+.feature-card{ padding:34px 24px; }
+
+ #process{ padding:90px 0; }
+.process-row{ padding:28px 0; }
+.process-row h4{ font-size:19px; }
+
+ #materials{ padding:100px 0; }
+.material-strip{ grid-template-columns:repeat(2,1fr); }
+.material-chip:nth-child(3){ border-left:none; }
+.material-chip{ padding:24px 18px; }
+
+ #showcase{ padding:100px 0; }
+.showcase-panel{ padding:22px; aspect-ratio:16/11; }
+
+ #testimonial{ padding:100px 0; }
+ blockquote{ font-size:22px; }
+
+ #final-cta{ padding:110px 0; }
+.cta-buttons{ flex-direction:column; gap:18px; }
+
+.footer-top{ grid-template-columns:1fr 1fr; gap:32px 20px; padding-bottom:44px; }
+ }
+
+ @media (max-width:520px){
+.footer-top{ grid-template-columns:1fr; }
+.hud{ flex-wrap:wrap; row-gap:14px; }
+ }
+
+ @media (prefers-reduced-motion: reduce){
+ *{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; }
+ html{ scroll-behavior:auto; }
+ }
+
+/* MODERN KELVARIS ICON SYSTEM */
+.icon, .feature-icon, .card-icon, .process-icon, .material-icon,
+.contact-icon, .quote-icon, .showcase-icon, .service-icon,
+.fas, .far, .fab, i[class*="fa-"] {
+  color: var(--cyan) !important;
+  -webkit-text-fill-color: var(--cyan);
+  filter: none;
+}
+
+.feature-icon, .card-icon, .process-icon, .material-icon,
+.contact-icon, .quote-icon, .showcase-icon, .service-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border: 1px solid rgba(95,227,255,.24);
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(255,255,255,.78), rgba(95,227,255,.08));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 8px 24px rgba(48,35,88,.07);
+  transition: transform .3s ease, border-color .3s ease, box-shadow .3s ease;
+}
+
+.feature-icon i, .card-icon i, .process-icon i, .material-icon i,
+.contact-icon i, .quote-icon i, .showcase-icon i, .service-icon i,
+.fas::before, .far::before, .fab::before, .fa::before {
+  color: var(--cyan) !important;
+  -webkit-text-fill-color: var(--cyan);
+  text-shadow: 0 0 14px rgba(95,227,255,.22);
+}
+
+.feature-icon:hover, .card-icon:hover, .process-icon:hover,
+.material-icon:hover, .contact-icon:hover, .quote-icon:hover,
+.showcase-icon:hover, .service-icon:hover {
+  transform: translateY(-3px);
+  border-color: rgba(95,227,255,.55);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,1),
+              0 12px 30px rgba(48,35,88,.10),
+              0 0 22px rgba(95,227,255,.10);
+}
+
+@media (max-width:760px) {
+  .feature-icon, .card-icon, .process-icon, .material-icon,
+  .contact-icon, .quote-icon, .showcase-icon, .service-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+  }
+}
+
+
+/* HERO LAYOUT FIX — keep headline clear of the 3D printer */
+.hero-copy{
+  left: clamp(24px, 4vw, 64px);
+  width: min(470px, 34vw);
+  z-index: 20;
+}
+
+#hero3d, #hero-canvas, .hero-3d, .hero-visual, .scene-wrap{
+  z-index: 5;
+}
+
+@media (min-width: 1000px){
+  .hero-copy{
+    max-width: 430px;
+    width: min(430px, 32vw);
+  }
+  .hero-copy h1{
+    font-size: clamp(38px, 4.15vw, 62px);
+    line-height: 1.04;
+  }
+  .hero-copy > p{
+    max-width: 400px;
+  }
+}
+
+@media (max-width: 999px){
+  .hero-copy{
+    width: min(520px, 52vw);
+  }
+}
+
+@media (max-width: 760px){
+  .hero-copy{
+    left: 22px;
+    right: 22px;
+    width: auto;
+    max-width: none;
+    bottom: 78px;
+    z-index: 20;
+  }
+  .hero-copy h1{
+    font-size: clamp(32px, 9vw, 48px);
+  }
+}
+
+</style>
+
+<style id="modern-kelvaris-ui">
+/* ===== V3D PRINTLAB × KELVARIS — MODERN UI OVERRIDES ===== */
+:root{
+ --bg-0:#f3f8fc;
+ --bg-1:#e9f3f9;
+ --bg-2:#dcecf5;
+ --steel:#c8dce8;
+ --steel-2:#aec9d9;
+ --line:rgba(19,74,112,.12);
+ --line-2:rgba(19,74,112,.07);
+ --cyan:#08a8c7;
+ --cyan-dim:#4b9fba;
+ --amber:#ff8a5b;
+ --text-0:#10243a;
+ --text-1:#486276;
+ --text-2:#7890a0;
+}
+html{scroll-behavior:smooth}
+body{
+ background:
+ radial-gradient(circle at 8% 8%, rgba(8,168,199,.10), transparent 28%),
+ radial-gradient(circle at 92% 18%, rgba(80,151,214,.10), transparent 30%),
+ linear-gradient(135deg,#f7fbfe 0%,#edf6fa 48%,#e5f1f7 100%);
+ color:var(--text-0);
+}
+body:before{
+ content:""; position:fixed; inset:0; pointer-events:none; z-index:9999; opacity:.24;
+ background-image:
+ linear-gradient(rgba(25,111,151,.028) 1px,transparent 1px),
+ linear-gradient(90deg,rgba(25,111,151,.028) 1px,transparent 1px);
+ background-size:48px 48px;
+ mask-image:linear-gradient(to bottom,black,transparent 72%);
+}
+#mainNav{
+ top:18px; left:22px; right:22px; width:auto;
+ padding:11px 14px 11px 16px;
+ border:1px solid rgba(255,255,255,.72);
+ border-radius:18px;
+ background:rgba(248,252,255,.72);
+ box-shadow:0 16px 45px rgba(38,91,121,.11), inset 0 1px 0 rgba(255,255,255,.95);
+ backdrop-filter:blur(24px) saturate(145%);
+ -webkit-backdrop-filter:blur(24px) saturate(145%);
+}
+.logo{letter-spacing:0!important}
+.brand-lockup{gap:11px}
+.brand-lockup>img{
+ width:43px!important;height:43px!important;flex-basis:43px!important;
+ border-radius:11px;
+ background:rgba(255,255,255,.55);
+ box-shadow:0 6px 18px rgba(20,91,126,.12);
+}
+.brand-copy strong{color:#102b42;font-size:16px}
+.brand-copy span{color:#1685a4;font-size:7.5px}
+.navlinks{gap:8px!important}
+.navlinks a{
+ padding:10px 14px;
+ border-radius:11px;
+ color:#456174;
+ transition:transform.25s ease,background.25s ease,color.25s ease;
+}
+.navlinks a:hover{
+ color:#087f9c;
+ background:rgba(8,168,199,.08);
+ transform:translateY(-1px);
+}
+.nav-cta{
+ border-radius:12px!important;
+ background:linear-gradient(135deg,#0aa9c6,#167fba)!important;
+ color:#fff!important;
+ box-shadow:0 9px 22px rgba(8,140,180,.22);
+ transition:transform.25s ease,box-shadow.25s ease;
+}
+.nav-cta:hover{transform:translateY(-2px);box-shadow:0 13px 28px rgba(8,140,180,.28)}
+
+#hero{
+ min-height:92vh;
+ background:
+ radial-gradient(circle at 72% 42%,rgba(8,168,199,.12),transparent 32%),
+ radial-gradient(circle at 30% 70%,rgba(42,117,185,.08),transparent 34%),
+ linear-gradient(135deg,#eef7fb,#dceef7);
+ border-bottom:1px solid rgba(17,89,124,.10);
+}
+.vignette{
+ background:
+ radial-gradient(ellipse 58% 70% at 76% 50%,rgba(8,168,199,.12),transparent 65%),
+ linear-gradient(90deg,rgba(244,250,253,.70),transparent 38%,transparent 72%,rgba(231,244,250,.30));
+}
+.scanline{opacity:.035}
+.grain{opacity:.035}
+
+section:not(#hero){
+ position:relative;
+}
+#features,#process,#materials,#quote,#contact{
+ background:transparent!important;
+}
+.section-head.tag{color:#078da9}
+.section-head.tag::before{background:#08a8c7}
+.section-head h2{color:#102b42}
+.section-head p{color:#5c7484}
+
+.feature-grid{gap:18px}
+.feature-card,.material-card,.quote-panel,.contact-panel,.showcase-panel{
+ border:1px solid rgba(42,106,137,.11)!important;
+ border-radius:22px!important;
+ background:rgba(250,253,255,.64)!important;
+ box-shadow:0 18px 45px rgba(42,91,117,.08),inset 0 1px 0 rgba(255,255,255,.90);
+ backdrop-filter:blur(16px);
+ -webkit-backdrop-filter:blur(16px);
+ transition:transform.35s cubic-bezier(.2,.8,.2,1),box-shadow.35s ease,border-color.35s ease;
+}
+.feature-card:hover,.material-card:hover{
+ transform:translateY(-7px);
+ box-shadow:0 24px 55px rgba(38,99,128,.13),inset 0 1px 0 rgba(255,255,255,.95);
+ border-color:rgba(8,168,199,.24)!important;
+}
+.feature-card.ic{
+ background:linear-gradient(145deg,rgba(8,168,199,.13),rgba(74,146,210,.07))!important;
+ border:1px solid rgba(8,168,199,.12);
+ border-radius:14px;
+}
+.feature-card .ic svg{stroke:#0798b5; fill:none; stroke-width:1.35; display:block;}
+.feature-card.num{color:#70a5b7}
+
+.process-row{border-color:rgba(20,100,132,.10)!important}
+.process-row.step{color:#0aa0bd}
+.process-row h4{color:#15354b}
+.process-row p{color:#607989}
+
+.material-chip{
+ border:1px solid rgba(28,101,132,.12)!important;
+ border-radius:14px;
+ background:rgba(255,255,255,.58);
+ box-shadow:0 10px 25px rgba(37,91,118,.06);
+}
+
+#showcase{
+ background:linear-gradient(135deg,#e5f2f8,#d8eaf4)!important;
+}
+.showcase-grid{gap:16px!important;background:transparent!important}
+.showcase-panel{overflow:hidden}
+.showcase-panel.fallback{
+ background:
+ radial-gradient(circle at 28% 20%,rgba(8,168,199,.20),transparent 45%),
+ radial-gradient(circle at 80% 75%,rgba(54,128,201,.14),transparent 44%),
+ linear-gradient(135deg,#d9edf6,#c5deea)!important;
+}
+.showcase-panel.label{color:#456878}
+
+input,select,textarea{
+ border:1px solid rgba(24,96,129,.14)!important;
+ border-radius:13px!important;
+ background:rgba(255,255,255,.68)!important;
+ color:#17364b!important;
+ box-shadow:inset 0 1px 2px rgba(20,75,100,.03);
+}
+input:focus,select:focus,textarea:focus{
+ border-color:rgba(8,168,199,.45)!important;
+ box-shadow:0 0 0 4px rgba(8,168,199,.09)!important;
+ outline:none;
+}
+button,.btn,.submit-btn{
+ border-radius:13px!important;
+ transition:transform.25s ease,box-shadow.25s ease;
+}
+button:hover,.btn:hover,.submit-btn:hover{
+ transform:translateY(-2px);
+}
+
+footer{
+ background:linear-gradient(135deg,#dcecf4,#d3e7f1)!important;
+ border-top:1px solid rgba(23,94,125,.10)!important;
+}
+.footer-logo-full{
+ width:min(250px,100%);
+ margin-bottom:18px;
+ border-radius:18px;
+ overflow:hidden;
+ background:rgba(255,255,255,.68);
+ border:1px solid rgba(42,106,137,.10);
+ box-shadow:0 14px 34px rgba(38,91,117,.08);
+}
+.footer-logo-full img{display:block;width:100%;height:auto}
+.footer-brand-lockup{display:none!important}
+.footer-col h5{color:#547386}
+.footer-col a{color:#4c6879}
+.footer-bottom{border-color:rgba(24,96,129,.10)!important;color:#6a8493}
+
+@media(max-width:880px){
+ #mainNav{left:10px;right:10px;top:10px;border-radius:15px}
+.navlinks{gap:3px!important}
+.navlinks a{padding:8px 9px;font-size:9px}
+.nav-cta{padding:9px 11px!important;font-size:9px!important}
+.brand-lockup>img{width:37px!important;height:37px!important;flex-basis:37px!important}
+.brand-copy strong{font-size:14px}
+.brand-copy span{font-size:6.5px}
+}
+@media(max-width:640px){
+ #mainNav{padding:9px 10px}
+.navlinks{display:none}
+.brand-copy strong{font-size:13px}
+.brand-copy span{font-size:6px}
+ #hero{min-height:88svh}
+}
+
+/* ===== ICON VISIBILITY / LOWER SECTION POLISH ===== */
+.section-icon-tag{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.section-mini-icon{
+  width:34px;
+  height:34px;
+  flex:0 0 34px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid rgba(8,168,199,.20);
+  border-radius:10px;
+  background:rgba(255,255,255,.62);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95);
+}
+.section-mini-icon svg{
+  width:18px;
+  height:18px;
+  display:block;
+  fill:none;
+  stroke:#08a8c7;
+  stroke-width:1.5;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.feature-card .ic{
+  width:38px;
+  height:38px;
+  min-width:38px;
+  flex:0 0 38px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.feature-card .ic svg{
+  width:100%;
+  height:100%;
+  display:block;
+  fill:none;
+  stroke:#0798b5;
+  stroke-width:1.35;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.process-row .diagram{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:64px;
+  height:64px;
+  min-width:64px;
+  border:1px solid rgba(8,168,199,.16);
+  border-radius:14px;
+  background:rgba(255,255,255,.48);
+}
+.process-row .diagram svg{
+  display:block;
+  width:48px;
+  height:48px;
+  fill:none;
+  stroke:#4b7181;
+  stroke-width:1.25;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.process-row:hover .diagram{
+  border-color:rgba(8,168,199,.32);
+  background:rgba(8,168,199,.06);
+}
+.process-row:hover .diagram svg{ stroke:#08a8c7; }
+
+@media(max-width:760px){
+  .section-mini-icon{width:30px;height:30px;flex-basis:30px;border-radius:9px}
+  .section-mini-icon svg{width:16px;height:16px}
+  .process-row .diagram{width:56px;height:56px;min-width:56px}
+  .process-row .diagram svg{width:42px;height:42px}
+}
+
+
+/* ===== PURPLE / LAVENDER VISUAL SYSTEM ===== */
+:root{
+  --bg-0:#f7f3ff;
+  --bg-1:#eee8ff;
+  --bg-2:#e4dcff;
+  --steel:#d8cff4;
+  --steel-2:#c5b7e9;
+  --line:rgba(73,48,150,.16);
+  --line-2:rgba(73,48,150,.09);
+  --cyan:#6540d8;
+  --cyan-dim:#8d78df;
+  --amber:#ff9a68;
+  --text-0:#17123b;
+  --text-1:#575074;
+  --text-2:#81799d;
+}
+body{
+ background:
+   radial-gradient(circle at 8% 8%,rgba(116,75,225,.12),transparent 30%),
+   radial-gradient(circle at 92% 18%,rgba(149,119,239,.13),transparent 32%),
+   linear-gradient(135deg,#fbf9ff 0%,#f4efff 46%,#e9e2fb 100%);
+ color:var(--text-0);
+}
+body:before{
+ background-image:
+   linear-gradient(rgba(92,61,180,.035) 1px,transparent 1px),
+   linear-gradient(90deg,rgba(92,61,180,.035) 1px,transparent 1px);
+}
+#mainNav{
+ background:rgba(250,248,255,.74);
+ border-color:rgba(255,255,255,.86);
+ box-shadow:0 16px 45px rgba(70,48,133,.12),inset 0 1px 0 rgba(255,255,255,.98);
+}
+.brand-copy strong{color:#19133f}
+.brand-copy span{color:#6246c6}
+.navlinks a{color:#5a5274}
+.navlinks a:hover{color:#5730c9;background:rgba(101,64,216,.08)}
+.nav-cta{
+ background:linear-gradient(135deg,#7044df,#5430c4)!important;
+ box-shadow:0 9px 22px rgba(91,55,205,.24);
+}
+#hero{
+ background:
+   radial-gradient(circle at 76% 42%,rgba(108,69,216,.18),transparent 34%),
+   radial-gradient(circle at 28% 70%,rgba(177,153,244,.15),transparent 35%),
+   linear-gradient(135deg,#fbf9ff,#eee8ff 52%,#e3daf9);
+ border-bottom-color:rgba(81,53,157,.12);
+}
+.vignette{
+ background:
+   radial-gradient(ellipse 58% 72% at 78% 50%,rgba(103,63,217,.18),transparent 65%),
+   linear-gradient(90deg,rgba(252,250,255,.76),transparent 38%,transparent 72%,rgba(237,229,253,.34));
+}
+.hero-kicker,.section-head.tag{color:#633bd3}
+.hero-kicker-line,.section-head.tag::before{background:#7044df}
+.hero-copy h1{color:#17123b}
+.hero-copy h1 span{color:#6540d8}
+.hero-copy > p{color:#5b5374}
+.hero-btn,.submit-btn,.btn{background:#20164b!important;color:#fff!important}
+.hero-btn:hover,.submit-btn:hover,.btn:hover{background:#34236f!important}
+.hero-text-link{color:#625a7a;border-color:rgba(101,64,216,.22)}
+.hero-text-link:hover{color:#6540d8;border-color:#6540d8}
+.hero-trust{color:#8a82a3}
+.hero-trust i{background:#6540d8}
+.feature-card,.material-card,.quote-panel,.contact-panel,.showcase-panel{
+ border-color:rgba(84,55,157,.12)!important;
+ background:rgba(255,253,255,.70)!important;
+ box-shadow:0 18px 45px rgba(71,50,127,.08),inset 0 1px 0 rgba(255,255,255,.94);
+}
+.feature-card:hover,.material-card:hover{
+ background:rgba(244,239,255,.88)!important;
+ border-color:rgba(101,64,216,.25)!important;
+ box-shadow:0 24px 55px rgba(75,50,145,.13),inset 0 1px 0 rgba(255,255,255,.98);
+}
+.feature-card .ic,.section-mini-icon,.process-row .diagram{
+ border-color:rgba(101,64,216,.17)!important;
+ background:linear-gradient(145deg,rgba(255,255,255,.84),rgba(101,64,216,.10))!important;
+}
+.feature-card .ic svg,.section-mini-icon svg{stroke:#6540d8!important}
+.process-row{border-color:rgba(82,55,150,.12)!important}
+.process-row.step{color:#6540d8!important}
+.process-row h4{color:#21184a}
+.process-row p{color:#625b78}
+.process-row .diagram svg{stroke:#6b6384}
+.process-row:hover .diagram{border-color:rgba(101,64,216,.34)!important;background:rgba(101,64,216,.07)!important}
+.process-row:hover .diagram svg{stroke:#6540d8}
+.material-chip{border-color:rgba(84,55,157,.12)!important;background:rgba(255,255,255,.64);box-shadow:0 10px 25px rgba(70,48,130,.06)}
+#showcase{background:linear-gradient(135deg,#eee8ff,#e5ddf9)!important}
+.showcase-panel.fallback{background:radial-gradient(circle at 28% 20%,rgba(101,64,216,.20),transparent 45%),radial-gradient(circle at 80% 75%,rgba(156,122,238,.17),transparent 44%),linear-gradient(135deg,#e6ddfa,#d7ccf0)!important}
+.showcase-panel.label{color:#655d7c}
+input,select,textarea{border-color:rgba(84,55,157,.16)!important;background:rgba(255,255,255,.74)!important;color:#21184a!important}
+input:focus,select:focus,textarea:focus{border-color:rgba(101,64,216,.48)!important;box-shadow:0 0 0 4px rgba(101,64,216,.09)!important}
+footer{background:linear-gradient(135deg,#e8e0f9,#ddd4f3)!important;border-top-color:rgba(73,48,150,.12)!important}
+.footer-col h5{color:#6b6384}.footer-col a{color:#625a78}.footer-col a:hover{color:#6540d8}.footer-bottom{border-color:rgba(73,48,150,.12)!important;color:#7a7194}
+.quote-mark,.quote-price.cur{color:#6540d8}
+.radio-chip.active{background:#6540d8!important;border-color:#6540d8!important}
+
+</style>
+
+</head>
+<body>
+
+<div id="loading"><span>V3D PRINTLAB</span>&nbsp;/ BY KELVARIS TECHNOLOGIES</div>
+
+<nav id="mainNav">
+ <div class="logo brand-lockup">
+ <img src="logo.png" alt="Kelvaris Technologies logo">
+ <div class="brand-copy">
+ <strong>V3D PRINTLAB</strong>
+ <span>BY KELVARIS TECHNOLOGIES</span>
+ </div>
+ </div>
+ <div class="navlinks">
+ <a href="#features">Printer</a>
+ <a href="#quote">Get a Quote</a>
+ <a href="#contact">Contact</a>
+ </div>
+ <div class="nav-cta" onclick="document.getElementById('quote').scrollIntoView({behavior:'smooth'})">Get a Quote</div>
+</nav>
+
+<!-- ===================== HERO ===================== -->
+<section id="hero">
+ <div id="scene"></div>
+ <div class="vignette"></div>
+ <div class="grain"></div>
+ <div class="scanline"></div>
+
+ <div class="hero-copy">
+ <div class="hero-kicker">
+ <span class="hero-kicker-line"></span>
+ KELVARIS TECHNOLOGIES / V3D
+ </div>
+ <h1>Turn Digital Ideas<br><span>Into Physical Reality.</span></h1>
+ <p>
+ Precision 3D printing for prototypes, products, and bold ideas —
+ engineered to turn your design into something real.
+ </p>
+ <div class="hero-actions">
+ <button class="hero-btn" onclick="document.getElementById('quote').scrollIntoView({behavior:'smooth'})">
+ Start Your Print
+ <span>→</span>
+ </button>
+ <a class="hero-text-link" href="#features">Explore V3D <span>↓</span></a>
+ </div>
+ <div class="hero-trust">
+ <span>PRECISION</span><i></i><span>ENGINEERED</span><i></i><span>DELIVERED</span>
+ </div>
+ </div>
+
+</section>
+
+
+<!-- ===================== FEATURES ===================== -->
+<section id="features">
+ <div class="wrap">
+ <div class="section-head reveal">
+ <div class="tag">Engineering</div>
+ <h2>Built on precision, not assumptions.</h2>
+ <p>Every mechanical system in our print fleet is designed around a single constraint: repeatable accuracy at industrial scale, print after print.</p>
+ </div>
+ <div class="feature-grid reveal">
+ <div class="feature-card">
+ <div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg></div>
+ <div class="num">01</div>
+ <h3>Closed-Loop Motion</h3>
+ <p>Linear encoders on every axis correct positional drift in real time, holding tolerance across multi-day prints.</p>
+ </div>
+ <div class="feature-card">
+ <div class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M4 9h16M9 4v16"/></svg></div>
+ <div class="num">02</div>
+ <h3>Isolated Thermal Chamber</h3>
+ <p>Actively regulated to 120°C ambient, eliminating warping and delamination in high-performance polymers.</p>
+ </div>
+ <div class="feature-card">
+ <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg></div>
+ <div class="num">03</div>
+ <h3>Modular Toolheads</h3>
+ <p>Swap between high-flow, fine-detail, and dual-material heads in under sixty seconds, no recalibration required.</p>
+ </div>
+ <div class="feature-card">
+ <div class="ic"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M4 9h16M9 4v5"/><circle cx="15.5" cy="15.5" r="2.5"/></svg></div>
+ <div class="num">04</div>
+ <h3>Optical Layer Inspection</h3>
+ <p>A machine-vision array scans every layer against the source model, flagging deviations before they compound.</p>
+ </div>
+ <div class="feature-card">
+ <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"/></svg></div>
+ <div class="num">05</div>
+ <h3>Autonomous Material Feed</h3>
+ <p>Sealed, humidity-controlled spool bays switch materials mid-queue without operator intervention.</p>
+ </div>
+ <div class="feature-card">
+ <div class="ic"><svg viewBox="0 0 24 24"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg></div>
+ <div class="num">06</div>
+ <h3>Live Telemetry</h3>
+ <p>Every print streams temperature, layer time, and vibration data to your dashboard, from first layer to last.</p>
+ </div>
+ </div>
+ </div>
+</section>
+
+<!-- ===================== PROCESS ===================== -->
+<section id="process">
+ <div class="wrap">
+ <div class="section-head reveal">
+ <div class="tag">Workflow</div>
+ <h2>From file to finished part in four stages.</h2>
+ <p>A typed sequence — each stage hands off a specific, verifiable output to the next.</p>
+ </div>
+ <div class="process-list reveal">
+ <div class="process-row">
+ <div class="idx">01 / DESIGN</div>
+ <div><h4>Import geometry</h4></div>
+ <div><p>Bring native CAD or mesh files in directly — STEP, STL, or OBJ — with automatic wall-thickness and overhang analysis.</p></div>
+ <div class="diagram"><svg viewBox="0 0 40 40"><path d="M8 32 20 6l12 26z"/><path d="M8 32h24"/></svg></div>
+ </div>
+ <div class="process-row">
+ <div class="idx">02 / SLICE</div>
+ <div><h4>Generate toolpaths</h4></div>
+ <div><p>Adaptive slicing varies layer height by region, spending resolution only where the geometry demands it.</p></div>
+ <div class="diagram"><svg viewBox="0 0 40 40"><path d="M6 8h28M6 16h28M6 24h28M6 32h28"/></svg></div>
+ </div>
+ <div class="process-row">
+ <div class="idx">03 / PRINT</div>
+ <div><h4>Fabricate</h4></div>
+ <div><p>The gantry executes the toolpath while optical inspection verifies each layer against the source model in real time.</p></div>
+ <div class="diagram"><svg viewBox="0 0 40 40"><rect x="10" y="10" width="20" height="20"/><path d="M10 20h20"/></svg></div>
+ </div>
+ <div class="process-row">
+ <div class="idx">04 / FINISH</div>
+ <div><h4>Post-process</h4></div>
+ <div><p>Automated support removal and surface finishing prepare the part for immediate use or secondary machining.</p></div>
+ <div class="diagram"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="12"/><path d="M20 8v4M20 28v4M8 20h4M28 20h4"/></svg></div>
+ </div>
+ </div>
+ </div>
+</section>
+
+
+
+<!-- ===================== QUOTE CALCULATOR ===================== -->
+<section id="quote">
+ <div class="wrap">
+ <div class="section-head reveal">
+ <div class="tag section-icon-tag"><span class="section-mini-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3h10M7 21h10M8 3v4l4 5-4 5v4M16 3v4l-4 5 4 5v4"/><path d="M8 12h8"/></svg></span>Instant Pricing</div>
+ <h2>Get a quote in seconds.</h2>
+ <p>Enter your part dimensions and we'll estimate material use, print time, and total cost. Final pricing is confirmed once we review your uploaded file.</p>
+ </div>
+
+ <div class="quote-layout reveal">
+ <div class="quote-form">
+ <div class="field-row">
+ <div class="field">
+ <label>Length (mm)</label>
+ <input type="number" id="qLength" value="80" min="1" max="500">
+ </div>
+ <div class="field">
+ <label>Width (mm)</label>
+ <input type="number" id="qWidth" value="60" min="1" max="500">
+ </div>
+ <div class="field">
+ <label>Height (mm)</label>
+ <input type="number" id="qHeight" value="40" min="1" max="500">
+ </div>
+ </div>
+
+ <div class="field-row">
+ <div class="field full">
+ <label>Material</label>
+ <select id="qMaterial">
+ <option value="PLA">PLA — Standard, general purpose</option>
+ <option value="PETG">PETG — Tougher, moisture resistant</option>
+ <option value="ABS">ABS — Heat resistant, durable</option>
+ <option value="TPU">TPU — Flexible, rubber-like</option>
+ <option value="RESIN">Resin — Fine detail, smooth finish</option>
+ </select>
+ </div>
+ </div>
+
+ <div class="field-row">
+ <div class="field">
+ <label>Quantity</label>
+ <input type="number" id="qQty" value="1" min="1" max="500">
+ </div>
+ <div class="field full" style="grid-column:span 2;">
+ <label>Infill Density</label>
+ <div class="radio-group" id="infillGroup">
+ <label class="radio-chip active"><input type="radio" name="infill" value="15" checked>15% Light</label>
+ <label class="radio-chip"><input type="radio" name="infill" value="35">35% Standard</label>
+ <label class="radio-chip"><input type="radio" name="infill" value="70">70% Strong</label>
+ <label class="radio-chip"><input type="radio" name="infill" value="100">100% Solid</label>
+ </div>
+ </div>
+ </div>
+
+ <div class="field-row">
+ <div class="field full">
+ <label>Finish Quality</label>
+ <div class="radio-group" id="qualityGroup">
+ <label class="radio-chip"><input type="radio" name="quality" value="draft">Draft — 0.28mm</label>
+ <label class="radio-chip active"><input type="radio" name="quality" value="standard" checked>Standard — 0.20mm</label>
+ <label class="radio-chip"><input type="radio" name="quality" value="fine">Fine — 0.12mm</label>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <div class="quote-result">
+ <div class="cap">Estimated Total</div>
+ <div class="quote-price"><span class="cur">$</span><span id="qTotal">0.00</span></div>
+ <div class="quote-eta" id="qEta">Est. print time: —</div>
+
+ <div class="quote-breakdown">
+ <div class="row"><span>Material (<span id="qMatName">PLA</span>)</span><span id="qMatCost">$0.00</span></div>
+ <div class="row"><span>Estimated weight</span><span id="qWeight">0 g</span></div>
+ <div class="row"><span>Machine time</span><span id="qTimeCost">$0.00</span></div>
+ <div class="row"><span>Setup fee</span><span id="qSetup">$0.00</span></div>
+ <div class="row"><span>Quantity</span><span id="qQtyShow">1</span></div>
+ </div>
+
+ <button class="btn" style="margin-top:32px;" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">
+ Send This Quote
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+ </button>
+
+ <p class="quote-note">This is an automated estimate based on bounding-box volume, not sliced geometry — actual cost may vary once we review your file. Rates shown are indicative and configurable by our team.</p>
+ </div>
+ </div>
+ </div>
+</section>
+
+<!-- ===================== CONTACT ===================== -->
+<section id="contact">
+ <div class="wrap">
+ <div class="section-head reveal">
+ <div class="tag section-icon-tag"><span class="section-mini-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8A2.5 2.5 0 0 1 17.5 16H11l-5.5 4v-4.5A2.5 2.5 0 0 1 4 13z"/><path d="M8 8h8M8 11.5h5"/></svg></span>Contact</div>
+ <h2>Tell us what you need printed.</h2>
+ <p>Upload details about your project and we'll follow up with final pricing and a turnaround estimate.</p>
+ </div>
+
+ <div class="contact-layout reveal">
+ <div class="contact-info">
+ <div class="info-row"><div class="k">Email</div><div class="v">hello@3dprintservices.com</div></div>
+ <div class="info-row"><div class="k">Phone</div><div class="v">+91 00000 00000</div></div>
+ <div class="info-row"><div class="k">Hours</div><div class="v">Mon – Sat, 10:00 – 19:00 IST</div></div>
+ <div class="info-row"><div class="k">Turnaround</div><div class="v">Most orders ship within 24–72 hours</div></div>
+ </div>
+
+ <form class="contact-form-el" id="contactForm">
+ <div class="field-row" style="grid-template-columns:1fr 1fr;">
+ <div class="field">
+ <label>Full Name</label>
+ <input type="text" name="name" required placeholder="Your name">
+ </div>
+ <div class="field">
+ <label>Email</label>
+ <input type="email" name="email" required placeholder="you@example.com">
+ </div>
+ </div>
+ <div class="field-row" style="grid-template-columns:1fr 1fr;">
+ <div class="field">
+ <label>Phone (optional)</label>
+ <input type="tel" name="phone" placeholder="+91 00000 00000">
+ </div>
+ <div class="field">
+ <label>Material Needed</label>
+ <input type="text" name="material_pref" placeholder="e.g. PETG, or unsure">
+ </div>
+ </div>
+ <div class="field">
+ <label>Project Details</label>
+ <textarea name="message" required placeholder="Describe what you'd like printed — dimensions, quantity, deadline, and any special finish."></textarea>
+ </div>
+
+ <!-- these hidden fields silently attach the calculator estimate to the email, so the team sees it without the customer re-typing anything -->
+ <input type="hidden" name="_subject" value="New quote request — V3D Printlab by Kelvaris Technologies">
+ <input type="hidden" name="estimated_quote" id="hiddenQuote" value="">
+ <input type="hidden" name="_template" value="table">
+ <input type="hidden" name="_captcha" value="false">
+
+ <button type="submit" class="submit-btn" id="submitBtn">
+ Send Request
+ <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+ </button>
+
+ <div class="form-msg" id="formMsg"></div>
+ </form>
+ </div>
+ </div>
+</section>
+
+<!-- ===================== TESTIMONIAL ===================== -->
+<section id="testimonial">
+ <div class="wrap reveal">
+ <div class="quote-mark">"</div>
+ <blockquote>We sent them our production geometry and had finished parts back in under thirty hours — no in-house printer ever matched that turnaround.</blockquote>
+ <div class="quote-attr"><b>Elena Marsh</b> — Director of Manufacturing, Korrel Dynamics</div>
+ </div>
+</section>
+
+<!-- ===================== FINAL CTA ===================== -->
+<section id="final-cta">
+ <div class="wrap">
+ <div class="cta-wrap reveal">
+ <div class="tag section-icon-tag"><span class="section-mini-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5-7 5 7"/><path d="M5 14v5h14v-5"/></svg></span>Get Started</div>
+ <h2>See it print, in your facility.</h2>
+ <p>Schedule a live demonstration with one of our applications engineers — bring your own geometry.</p>
+ <div class="cta-buttons">
+ <button class="btn" onclick="document.getElementById('quote').scrollIntoView({behavior:'smooth'})">
+ Get a Quote
+ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+ </button>
+ <a class="link-ghost" href="#contact">Contact us directly</a>
+ </div>
+ </div>
+ </div>
+</section>
+
+<!-- ===================== FOOTER ===================== -->
+<footer>
+ <div class="wrap">
+ <div class="footer-top">
+ <div class="footer-brand">
+ <div class="footer-logo-full">
+ <img src="kelvaris-logo-full.png" alt="Kelvaris Technologies full logo">
+ </div>
+ <div class="logo brand-lockup footer-brand-lockup">
+ <img src="logo.png" alt="Kelvaris Technologies logo">
+ <div class="brand-copy">
+ <strong>V3D PRINTLAB</strong>
+ <span>BY KELVARIS TECHNOLOGIES</span>
+ </div>
+ </div>
+ <p>Precision additive manufacturing systems for industrial fabrication. Designed and assembled for continuous operation.</p>
+ </div>
+ <div class="footer-col">
+ <h5>Product</h5>
+ <a href="#features">Printer</a>
+ <a href="#quote">Get a Quote</a>
+ <a href="#contact">Contact</a>
+ </div>
+ <div class="footer-col">
+ <h5>Company</h5>
+ <a href="#">About</a>
+ <a href="#">Careers</a>
+ <a href="#">Press</a>
+ <a href="#">Contact</a>
+ </div>
+ <div class="footer-col">
+ <h5>Resources</h5>
+ <a href="#">Documentation</a>
+ <a href="#">Spec Sheet</a>
+ <a href="#">Support</a>
+ <a href="#">Warranty</a>
+ </div>
+ </div>
+ <div class="footer-bottom">
+ <div>© 2026 V3D PRINTLAB BY KELVARIS TECHNOLOGIES. ALL RIGHTS RESERVED.</div>
+ <div>DESIGNED &amp; ASSEMBLED — SERIES 01</div>
+ </div>
+ </div>
+</footer>
+
+<script type="importmap">
+{
+ "imports": {
+ "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+ "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+ }
+}
+</script>
+
+<script>
+if('scrollRestoration' in history){ history.scrollRestoration = 'manual'; }
+window.scrollTo(0,0);
+</script>
+
+<script>
+/* ---------- Scroll-based nav + reveal (runs independently of the 3D scene) ---------- */
+const navEl = document.getElementById('mainNav');
+window.addEventListener('scroll', ()=>{
+ navEl.classList.toggle('scrolled', window.scrollY > 40);
+});
+const revealEls = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver((entries)=>{
+ entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+}, {threshold:0.15});
+revealEls.forEach(el=> io.observe(el));
+
+// unconditional fallback: hide the loading screen even if the 3D scene fails entirely
+setTimeout(()=>{
+ const loading = document.getElementById('loading');
+ if(loading && loading.style.visibility !== 'hidden'){
+ loading.style.opacity = 0;
+ setTimeout(()=> loading.style.visibility='hidden', 1000);
+ }
+}, 3000);
+
+/* ==========================================================================
+ INSTANT QUOTE CALCULATOR
+ All rates below are placeholder example values — swap them for our
+ V3D's real per-gram material costs and machine hourly rate before launch.
+ The estimate uses bounding-box volume (L*W*H), not sliced geometry, so it
+ will not exactly match a real slicer — that's stated to the customer in
+ the quote-note copy so expectations are set correctly.
+ ========================================================================== */
+const MATERIALS = {
+ PLA: { label:'PLA', density: 1.24, pricePerGram: 4.0 }, // ₹ per gram
+ PETG: { label:'PETG', density: 1.27, pricePerGram: 5.0 },
+ ABS: { label:'ABS', density: 1.04, pricePerGram: 4.5 },
+ TPU: { label:'TPU', density: 1.21, pricePerGram: 7.5 },
+ RESIN: { label:'Resin', density: 1.10, pricePerGram: 9.0 }
+};
+const MACHINE_RATE_PER_HOUR = 120; // ₹ per hour of machine time
+const SETUP_FEE = 60; // ₹ flat fee per distinct print job
+const BASE_PRINT_SPEED_CM3_PER_HR = 18; // baseline volumetric print rate at 35% infill, standard quality
+
+const QUALITY_TIME_MULTIPLIER = { draft: 0.7, standard: 1.0, fine: 1.6 };
+
+function getSelectedRadio(name){
+ const el = document.querySelector(`input[name="${name}"]:checked`);
+ return el ? el.value: null;
+}
+
+function wireRadioGroup(groupId){
+ const group = document.getElementById(groupId);
+ if(!group) return;
+ group.querySelectorAll('.radio-chip').forEach(chip=>{
+ chip.addEventListener('click', ()=>{
+ group.querySelectorAll('.radio-chip').forEach(c=>c.classList.remove('active'));
+ chip.classList.add('active');
+ chip.querySelector('input').checked = true;
+ calculateQuote();
+ });
+ });
+}
+
+function calculateQuote(){
+ const L = parseFloat(document.getElementById('qLength').value) || 0;
+ const W = parseFloat(document.getElementById('qWidth').value) || 0;
+ const H = parseFloat(document.getElementById('qHeight').value) || 0;
+ const qty = Math.max(1, parseInt(document.getElementById('qQty').value) || 1);
+ const materialKey = document.getElementById('qMaterial').value;
+ const infillPct = parseFloat(getSelectedRadio('infill')) || 15;
+ const quality = getSelectedRadio('quality') || 'standard';
+
+ const mat = MATERIALS[materialKey];
+
+ // bounding-box volume in cm3
+ const boundingVolumeCm3 = (L * W * H) / 1000;
+
+ // shells are always ~15% solid regardless of infill setting; the rest follows infill %
+ const effectiveDensityFactor = 0.15 + (infillPct/100) * 0.85;
+ const effectiveVolumeCm3 = boundingVolumeCm3 * effectiveDensityFactor;
+
+ const weightGrams = effectiveVolumeCm3 * mat.density;
+ const materialCostPerUnit = weightGrams * mat.pricePerGram;
+
+ // higher infill takes longer to print; quality setting scales layer time
+ const infillTimeFactor = 0.6 + (infillPct/100) * 0.8;
+ const printHoursPerUnit = (boundingVolumeCm3 / BASE_PRINT_SPEED_CM3_PER_HR) * infillTimeFactor * QUALITY_TIME_MULTIPLIER[quality];
+ const timeCostPerUnit = printHoursPerUnit * MACHINE_RATE_PER_HOUR;
+
+ const totalMaterialCost = materialCostPerUnit * qty;
+ const totalTimeCost = timeCostPerUnit * qty;
+ const totalWeight = weightGrams * qty;
+ const totalHours = printHoursPerUnit * qty;
+ const grandTotal = totalMaterialCost + totalTimeCost + SETUP_FEE;
+
+ document.getElementById('qTotal').textContent = grandTotal.toFixed(2);
+ document.getElementById('qMatName').textContent = mat.label;
+ document.getElementById('qMatCost').textContent = '₹' + totalMaterialCost.toFixed(2);
+ document.getElementById('qWeight').textContent = totalWeight.toFixed(1) + ' g';
+ document.getElementById('qTimeCost').textContent = '₹' + totalTimeCost.toFixed(2);
+ document.getElementById('qSetup').textContent = '₹' + SETUP_FEE.toFixed(2);
+ document.getElementById('qQtyShow').textContent = qty;
+
+ const hrs = Math.floor(totalHours);
+ const mins = Math.round((totalHours - hrs) * 60);
+ document.getElementById('qEta').textContent = `Est. print time: ${hrs}h ${mins}m`;
+
+ // stash a plain-text summary in the hidden contact-form field so the quote
+ // travels with the enquiry email without the customer retyping anything
+ const summary = `${qty}x ${mat.label} part, ${L}x${W}x${H}mm, ${infillPct}% infill, ${quality} quality — Est. ₹${grandTotal.toFixed(2)} (${hrs}h ${mins}m print time)`;
+ const hiddenField = document.getElementById('hiddenQuote');
+ if(hiddenField) hiddenField.value = summary;
+}
+
+['qLength','qWidth','qHeight','qQty','qMaterial'].forEach(id=>{
+ const el = document.getElementById(id);
+ if(el) el.addEventListener('input', calculateQuote);
+});
+wireRadioGroup('infillGroup');
+wireRadioGroup('qualityGroup');
+calculateQuote();
+
+/* ==========================================================================
+ CONTACT FORM SUBMISSION
+ Currently wired to FormSubmit (https://formsubmit.co) as a placeholder —
+ it forwards form submissions straight to an email address with no backend
+ required. Replace DUMMY_CONTACT_EMAIL below with the real destination
+ address before going live. The FIRST submission to a new address requires
+ a one-time confirmation click sent to that inbox by FormSubmit.
+ ========================================================================== */
+const DUMMY_CONTACT_EMAIL = 'dummy@example.com'; // <-- replace with the real inbox before launch
+
+const contactForm = document.getElementById('contactForm');
+if(contactForm){
+ contactForm.addEventListener('submit', async (e)=>{
+ e.preventDefault();
+ const btn = document.getElementById('submitBtn');
+ const msg = document.getElementById('formMsg');
+ btn.disabled = true;
+ btn.textContent = 'Sending…';
+
+ try{
+ const formData = new FormData(contactForm);
+ const res = await fetch(`https://formsubmit.co/ajax/${DUMMY_CONTACT_EMAIL}`, {
+ method: 'POST',
+ headers: { 'Accept': 'application/json' },
+ body: formData
+ });
+ if(!res.ok) throw new Error('Network response was not OK');
+
+ msg.textContent = "Request sent — we'll get back to you shortly.";
+ msg.className = 'form-msg show success';
+ contactForm.reset();
+ calculateQuote(); // repopulate the hidden quote field after reset
+ }catch(err){
+ console.error('Contact form submission failed:', err);
+ msg.textContent = "Something went wrong sending that — please email us directly instead.";
+ msg.className = 'form-msg show error';
+ }finally{
+ btn.disabled = false;
+ btn.innerHTML = 'Send Request <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+ }
+ });
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+
+function makeBrandTexture(){
+ const c = document.createElement('canvas');
+ c.width = 512; c.height = 128;
+ const ctx = c.getContext('2d');
+ ctx.clearRect(0,0,512,128);
+ ctx.textAlign = 'left';
+ ctx.textBaseline = 'alphabetic';
+ ctx.fillStyle = '#1c1730';
+ ctx.font = '700 62px Arial, sans-serif';
+ ctx.fillText('V3D', 14, 72);
+ ctx.fillStyle = '#4c3aa8';
+ ctx.font = '600 22px Arial, sans-serif';
+ ctx.letterSpacing = '3px';
+ ctx.fillText('PRINTLAB', 16, 102);
+ const tex = new THREE.CanvasTexture(c);
+ tex.colorSpace = THREE.SRGBColorSpace;
+ tex.needsUpdate = true;
+ return tex;
+}
+
+function makePanelLabelTexture(){
+ const c = document.createElement('canvas');
+ c.width = 512; c.height = 160;
+ const ctx = c.getContext('2d');
+ ctx.clearRect(0,0,512,160);
+ ctx.fillStyle = 'rgba(40,32,70,0.82)';
+ ctx.textAlign = 'left';
+ ctx.font = '600 30px Arial, sans-serif';
+ ctx.fillText('IDEAS', 10, 46);
+ ctx.fillText('LAYER', 10, 92);
+ ctx.fillText('BY LAYER', 10, 138);
+ const tex = new THREE.CanvasTexture(c);
+ tex.colorSpace = THREE.SRGBColorSpace;
+ tex.needsUpdate = true;
+ return tex;
+}
+
+window.addEventListener('DOMContentLoaded', ()=>{
+ try{
+ init();
+ }catch(err){
+ console.error('3D scene failed to initialize:', err);
+ }
+});
+
+/* ---------- radial-gradient canvas texture for a soft contact shadow ---------- */
+function makeContactShadowTexture(){
+ const size = 512;
+ const c = document.createElement('canvas');
+ c.width = c.height = size;
+ const ctx = c.getContext('2d');
+ const g = ctx.createRadialGradient(size/2,size/2,0,size/2,size/2,size/2);
+ g.addColorStop(0, 'rgba(0,0,0,0.55)');
+ g.addColorStop(0.6, 'rgba(0,0,0,0.28)');
+ g.addColorStop(1, 'rgba(0,0,0,0)');
+ ctx.fillStyle = g;
+ ctx.fillRect(0,0,size,size);
+ return new THREE.CanvasTexture(c);
+}
+
+function init(){
+ const container = document.getElementById('scene');
+ const scene = new THREE.Scene();
+ scene.fog = new THREE.FogExp2(0xe9e2f8, 0.008);
+
+ const isMobile = window.innerWidth < 880;
+
+ const camera = new THREE.PerspectiveCamera(isMobile ? 46: 36, window.innerWidth/window.innerHeight, 0.1, 200);
+ // on narrow screens, pull back and re-center so the printer stays framed instead of cropped
+ const camStart = isMobile ? new THREE.Vector3(9.5, 6.2, 15.5): new THREE.Vector3(14.8, 5.2, 14.0);
+ const camEnd = isMobile ? new THREE.Vector3(5.6, 4.2, 11.5): new THREE.Vector3(10.4, 3.3, 9.7);
+ const lookTarget = isMobile ? new THREE.Vector3(4.2, 0.7, 0): new THREE.Vector3(7.0, 1.35, 0);
+ camera.position.copy(camStart);
+ camera.lookAt(lookTarget);
+
+ const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true, powerPreference:'high-performance'});
+ renderer.setSize(window.innerWidth, window.innerHeight);
+ renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5: 2));
+ renderer.outputColorSpace = THREE.SRGBColorSpace;
+ renderer.toneMapping = THREE.ACESFilmicToneMapping;
+ renderer.toneMappingExposure = 0.95;
+ renderer.shadowMap.enabled = !isMobile;
+ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+ container.appendChild(renderer.domElement);
+
+ /* ---------- PBR environment lighting (real reflections on metal/glass) ---------- */
+ const pmrem = new THREE.PMREMGenerator(renderer);
+ const envRT = pmrem.fromScene(new RoomEnvironment(), 0.04);
+ scene.environment = envRT.texture;
+
+ /* ---------- Post-processing: real bloom on emissive cyan/amber accents ---------- */
+ const composer = new EffectComposer(renderer);
+ composer.addPass(new RenderPass(scene, camera));
+ const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), isMobile ? 0.12: 0.16, 0.4, 0.86);
+ composer.addPass(bloomPass);
+ composer.addPass(new OutputPass());
+
+ const ambient = new THREE.AmbientLight(0x9d8bd8, 1.9);
+ scene.add(ambient);
+
+ const keyLight = new THREE.SpotLight(0xffffff, 2.7, 40, Math.PI/6, 0.5, 1.2);
+ keyLight.position.set(8, 12, 6);
+ keyLight.castShadow = true;
+ keyLight.shadow.mapSize.set(2048,2048);
+ scene.add(keyLight);
+
+ const cyanRim = new THREE.PointLight(0x7851e8, 2.4, 13, 2);
+ cyanRim.position.set(-2, 4, 4);
+ scene.add(cyanRim);
+
+ const cyanFill = new THREE.PointLight(0xb09ae9, 1.25, 11, 2);
+ cyanFill.position.set(6, 1, -3);
+ scene.add(cyanFill);
+
+ const amberGlow = new THREE.PointLight(0xff8a3d, 0.9, 3, 2);
+ amberGlow.position.set(2.4, 1.35, 0.4);
+ scene.add(amberGlow);
+
+ const backLight = new THREE.DirectionalLight(0x9b86dc, 0.95);
+ backLight.position.set(-6, 5, -6);
+ scene.add(backLight);
+
+ const matSteelDark = new THREE.MeshPhysicalMaterial({color:0x8d83a8, metalness:0.86, roughness:0.24, envMapIntensity:1.65, clearcoat:0.45, clearcoatRoughness:0.28});
+ const matSteelLight = new THREE.MeshPhysicalMaterial({color:0xd6d0e4, metalness:0.84, roughness:0.20, envMapIntensity:1.7, clearcoat:0.55, clearcoatRoughness:0.22});
+ const matAluminum = new THREE.MeshPhysicalMaterial({color:0xe7e2f0, metalness:0.9, roughness:0.14, envMapIntensity:1.8, clearcoat:0.6, clearcoatRoughness:0.18});
+ const matGlassDark = new THREE.MeshPhysicalMaterial({
+ color:0x2a2340, metalness:0, roughness:0.05, transmission:0.88, thickness:0.6, ior:1.45,
+ transparent:true, opacity:0.55, envMapIntensity:1.6, clearcoat:1, clearcoatRoughness:0.05, side: THREE.DoubleSide
+ });
+ const matGlass = new THREE.MeshPhysicalMaterial({
+ color:0xd7c9f2, metalness:0, roughness:0.035, transmission:0.94, thickness:0.5, ior:1.45,
+ transparent:true, opacity:0.32, envMapIntensity:1.4, clearcoat:1, clearcoatRoughness:0.06, side: THREE.DoubleSide
+ });
+ const matBrand = new THREE.MeshBasicMaterial({map: makeBrandTexture(), transparent:true});
+ const matPanelLabel = new THREE.MeshBasicMaterial({map: makePanelLabelTexture(), transparent:true});
+ const matCyanEmissive = new THREE.MeshStandardMaterial({color:0x33205f, emissive:0x6d43e8, emissiveIntensity:1.7, metalness:0.45, roughness:0.32});
+ const matAmberEmissive = new THREE.MeshStandardMaterial({color:0x5a365e, emissive:0xffa16f, emissiveIntensity:2.0, metalness:0.3, roughness:0.35});
+ const matBedDark = new THREE.MeshPhysicalMaterial({color:0x4b3d69, metalness:0.72, roughness:0.28, envMapIntensity:1.35, clearcoat:0.45});
+ const matPrint = new THREE.MeshPhysicalMaterial({color:0xf2ecff, metalness:0.02, roughness:0.25, transmission:0.10, thickness:0.6, transparent:true, opacity:0.98, envMapIntensity:1.15});
+
+ const printer = new THREE.Group();
+ scene.add(printer);
+
+ const base = new THREE.Mesh(new RoundedBoxGeometry(4.6, 0.5, 3.5, 4, 0.09), matSteelDark);
+ base.position.set(0, -1.7, 0);
+ base.castShadow = true; base.receiveShadow = true;
+ printer.add(base);
+
+ const trim = new THREE.Mesh(new THREE.BoxGeometry(4.42, 0.04, 3.42), matCyanEmissive);
+ trim.position.set(0, -1.44, 0);
+ printer.add(trim);
+
+ // Lower solid front control fascia (silver-white), spans most of the front below the glass.
+ const lowerFront = new THREE.Mesh(new RoundedBoxGeometry(4.2, 0.62, 3.3, 4, 0.06), matSteelLight);
+ lowerFront.position.set(0, -1.34, 0);
+ lowerFront.castShadow = true;
+ printer.add(lowerFront);
+
+ // "V3D / PRINTLAB" brand plate on upper front panel.
+ const brandPlate = new THREE.Mesh(new THREE.PlaneGeometry(1.65, 0.42), matBrand);
+ brandPlate.position.set(-1.15, 2.85, 1.77);
+ printer.add(brandPlate);
+
+ const railGeo = new THREE.CylinderGeometry(0.09, 0.09, 4.6, 16);
+ const railPositions = [[-2.05,-1.9,-1.55],[2.05,-1.9,-1.55],[-2.05,-1.9,1.55],[2.05,-1.9,1.55]];
+ railPositions.forEach(p=>{
+ const r = new THREE.Mesh(railGeo, matAluminum);
+ r.position.set(p[0], p[1]+2.3, p[2]);
+ r.castShadow = true;
+ printer.add(r);
+ });
+
+ const topFrame = new THREE.Mesh(new RoundedBoxGeometry(4.6, 0.5, 3.5, 4, 0.09), matSteelLight);
+ topFrame.position.set(0, 2.85, 0);
+ topFrame.castShadow = true;
+ printer.add(topFrame);
+
+ // Reference-inspired lower control fascia: glowing ring toward the right, panel text at left.
+ const controlFascia = new THREE.Mesh(new THREE.BoxGeometry(4.0, 0.48, 0.18), matSteelLight);
+ controlFascia.position.set(0, -1.34, 1.75);
+ printer.add(controlFascia);
+ const controlRing = new THREE.Mesh(new THREE.TorusGeometry(0.19, 0.05, 16, 48), matCyanEmissive);
+ controlRing.rotation.x = Math.PI/2;
+ controlRing.position.set(1.55, -1.34, 1.85);
+ printer.add(controlRing);
+ const controlRingInner = new THREE.Mesh(new THREE.CircleGeometry(0.13, 32), matCyanEmissive);
+ controlRingInner.position.set(1.55, -1.34, 1.855);
+ printer.add(controlRingInner);
+ const controlGlow = new THREE.PointLight(0x8a5cff, 1.1, 2.2, 2);
+ controlGlow.position.set(1.55, -1.34, 1.9);
+ printer.add(controlGlow);
+ const panelLabel = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 0.42), matPanelLabel);
+ panelLabel.position.set(-1.5, -1.34, 1.855);
+ printer.add(panelLabel);
+
+ // Filament tube emerging from the top, curving backward.
+ const tube = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.075, 14, 48, Math.PI*1.35), matSteelDark);
+ tube.rotation.z = Math.PI*0.08;
+ tube.rotation.y = Math.PI*0.04;
+ tube.position.set(0.55, 3.55, -0.15);
+ printer.add(tube);
+
+ const glassFront = new THREE.Mesh(new THREE.PlaneGeometry(4.1, 3.7), matGlassDark);
+ glassFront.position.set(0, 0.65, 1.72);
+ printer.add(glassFront);
+ // slim metallic frame accents around the front glass
+ const frameGeoTB = new THREE.BoxGeometry(4.16, 0.05, 0.04);
+ const frameTop = new THREE.Mesh(frameGeoTB, matAluminum); frameTop.position.set(0, 2.48, 1.73); printer.add(frameTop);
+ const frameBot = new THREE.Mesh(frameGeoTB, matAluminum); frameBot.position.set(0, -1.02, 1.73); printer.add(frameBot);
+ const frameGeoLR = new THREE.BoxGeometry(0.05, 3.72, 0.04);
+ const frameL = new THREE.Mesh(frameGeoLR, matAluminum); frameL.position.set(-2.06, 0.65, 1.73); printer.add(frameL);
+ const frameR = new THREE.Mesh(frameGeoLR, matAluminum); frameR.position.set(2.06, 0.65, 1.73); printer.add(frameR);
+
+ const glassSideR = new THREE.Mesh(new THREE.PlaneGeometry(3.0, 3.7), matGlassDark);
+ glassSideR.rotation.y = Math.PI/2;
+ glassSideR.position.set(2.17, 0.65, 0);
+ printer.add(glassSideR);
+
+ const glassSideL = new THREE.Mesh(new THREE.PlaneGeometry(3.0, 3.7), matGlassDark);
+ glassSideL.rotation.y = Math.PI/2;
+ glassSideL.position.set(-2.17, 0.65, 0);
+ printer.add(glassSideL);
+
+ const bed = new THREE.Mesh(new THREE.CylinderGeometry(1.35, 1.35, 0.08, 48), matBedDark);
+ bed.position.set(0, -1.15, 0);
+ bed.castShadow = true; bed.receiveShadow = true;
+ printer.add(bed);
+
+ const bedRim = new THREE.Mesh(new THREE.TorusGeometry(1.35, 0.025, 12, 48), matCyanEmissive);
+ bedRim.rotation.x = Math.PI/2;
+ bedRim.position.set(0, -1.1, 0);
+ printer.add(bedRim);
+
+ for(let i=1;i<=3;i++){
+ const ring = new THREE.Mesh(new THREE.TorusGeometry(0.35*i, 0.006, 8, 64), matAluminum);
+ ring.rotation.x = Math.PI/2;
+ ring.position.set(0,-1.1,0);
+ printer.add(ring);
+ }
+
+ const gantry = new THREE.Group();
+ const gantryBeam = new THREE.Mesh(new THREE.BoxGeometry(4.0, 0.22, 0.34), matSteelLight);
+ gantryBeam.castShadow = true;
+ gantry.add(gantryBeam);
+
+ const gantryGlowStrip = new THREE.Mesh(new THREE.BoxGeometry(3.9, 0.02, 0.02), matCyanEmissive);
+ gantryGlowStrip.position.set(0,-0.13,0.17);
+ gantry.add(gantryGlowStrip);
+
+ const rodGeo = new THREE.CylinderGeometry(0.035,0.035,4.0,10);
+ const rod1 = new THREE.Mesh(rodGeo, matAluminum);
+ rod1.rotation.z = Math.PI/2; rod1.position.set(0,0.09,0.12);
+ gantry.add(rod1);
+ const rod2 = rod1.clone(); rod2.position.z=-0.12; gantry.add(rod2);
+
+ printer.add(gantry);
+ gantry.position.set(0, 1.9, 0);
+
+ const head = new THREE.Group();
+ const headBody = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.5, 0.42), matSteelDark);
+ headBody.castShadow = true;
+ head.add(headBody);
+
+ const headBand = new THREE.Mesh(new THREE.BoxGeometry(0.44,0.06,0.44), matCyanEmissive);
+ headBand.position.y = 0.05;
+ head.add(headBand);
+
+ const nozzleCone = new THREE.Mesh(new THREE.ConeGeometry(0.09,0.22,16), matAluminum);
+ nozzleCone.position.y = -0.36;
+ head.add(nozzleCone);
+
+ const nozzleTip = new THREE.Mesh(new THREE.SphereGeometry(0.025,10,10), matAmberEmissive);
+ nozzleTip.position.y = -0.47;
+ head.add(nozzleTip);
+
+ const nozzleLight = new THREE.PointLight(0xff8a3d, 1.1, 1.4, 2);
+ nozzleLight.position.y = -0.47;
+ head.add(nozzleLight);
+
+ for(let i=0;i<4;i++){
+ const fin = new THREE.Mesh(new THREE.BoxGeometry(0.36,0.03,0.03), matAluminum);
+ fin.position.set(0, 0.18 - i*0.06, 0.24);
+ head.add(fin);
+ }
+
+ head.position.set(0, 1.6, 0);
+ printer.add(head);
+
+ const vaseProfile = [
+   new THREE.Vector2(0.28,-1.02), new THREE.Vector2(0.42,-0.88), new THREE.Vector2(0.50,-0.42),
+   new THREE.Vector2(0.46,0.08), new THREE.Vector2(0.32,0.48), new THREE.Vector2(0.22,0.70),
+   new THREE.Vector2(0.30,0.88), new THREE.Vector2(0.38,0.98)
+ ];
+ // low radial segment count gives the lathe visible facets, matching the geometric-vase reference
+ const printGeo = new THREE.LatheGeometry(vaseProfile, 10);
+ const printedObj = new THREE.Mesh(printGeo, matPrint);
+ printedObj.position.set(0, 0.02, 0);
+ printedObj.castShadow = true;
+ printer.add(printedObj);
+ const printedObjEdges = new THREE.LineSegments(
+ new THREE.EdgesGeometry(printGeo),
+ new THREE.LineBasicMaterial({color:0x7951dc, transparent:true, opacity:0.42})
+ );
+ printedObjEdges.position.copy(printedObj.position);
+ printer.add(printedObjEdges);
+
+ const clipPlane = new THREE.Plane(new THREE.Vector3(0,1,0), 0.78);
+ matPrint.clippingPlanes = [clipPlane];
+ matPrint.clipShadows = true;
+ renderer.localClippingEnabled = true;
+
+ const spool = new THREE.Group();
+ const spoolCore = new THREE.Mesh(new THREE.CylinderGeometry(0.28,0.28,0.14,24), matSteelLight);
+ spoolCore.rotation.z = Math.PI/2;
+ spool.add(spoolCore);
+ const spoolFilament = new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,0.1,24), new THREE.MeshStandardMaterial({color:0x8065e5, metalness:0.3, roughness:0.5}));
+ spoolFilament.rotation.z = Math.PI/2;
+ spool.add(spoolFilament);
+ spool.position.set(1.75, 2.1, -1.2);
+ printer.add(spool);
+
+ const panel = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.35,0.05), matSteelLight);
+ panel.position.set(2.15, 0.3, 1.63);
+ printer.add(panel);
+ const panelScreen = new THREE.Mesh(new THREE.PlaneGeometry(0.4,0.24), matCyanEmissive);
+ panelScreen.position.set(2.16, 0.3, 1.665);
+ printer.add(panelScreen);
+
+ const floorMat = new THREE.MeshStandardMaterial({color:0xd4cde2, metalness:0.28, roughness:0.44});
+ const floor = new THREE.Mesh(new THREE.PlaneGeometry(60,60), floorMat);
+ floor.rotation.x = -Math.PI/2;
+ floor.position.y = -2.4;
+ floor.receiveShadow = true;
+ scene.add(floor);
+
+ const contactShadow = new THREE.Mesh(
+ new THREE.PlaneGeometry(7, 6),
+ new THREE.MeshBasicMaterial({map: makeContactShadowTexture(), transparent:true, depthWrite:false})
+ );
+ contactShadow.rotation.x = -Math.PI/2;
+ contactShadow.position.set(isMobile ? 4.4 : 7.5, -2.38, 0);
+ scene.add(contactShadow);
+
+ const particleCount = isMobile ? 50: 120;
+ const particleGeo = new THREE.BufferGeometry();
+ const positions = new Float32Array(particleCount*3);
+ for(let i=0;i<particleCount;i++){
+ positions[i*3] = (Math.random()-0.5)*12 + 2;
+ positions[i*3+1] = Math.random()*6 - 1.5;
+ positions[i*3+2] = (Math.random()-0.5)*8;
+ }
+ particleGeo.setAttribute('position', new THREE.BufferAttribute(positions,3));
+ const particleMat = new THREE.PointsMaterial({color:0x7951dc, size:0.012, transparent:true, opacity:0.42});
+ const particles = new THREE.Points(particleGeo, particleMat);
+ scene.add(particles);
+
+ printer.position.set(isMobile ? 4.4 : 7.5, 0, 0);
+ particles.position.set(isMobile ? 4.4 : 7.5,0,0);
+
+ let t = 0;
+ let printProgress = 0.42;
+ const clock = new THREE.Clock();
+ let mouseX = 0, mouseY = 0;
+
+ function animate(){
+ requestAnimationFrame(animate);
+ const dt = Math.min(clock.getDelta(), 0.05);
+
+ // pause heavy render loop cost when hero is scrolled out of view —
+ // but don't let sim time (t) advance while paused, or the dolly-in /
+ // idle rotation will appear to have already finished when you scroll back up.
+ const heroVisible = window.scrollY < window.innerHeight;
+ if(!heroVisible){ return; }
+
+ t += dt;
+
+ printer.rotation.y = Math.sin(t*0.15)*0.12 + mouseX*0.15;
+ printer.rotation.x = mouseY*0.05;
+
+ const headSweep = Math.sin(t*0.6)*1.7;
+ head.position.x = headSweep;
+ head.position.y = 1.55 + Math.sin(t*0.6)*0.02;
+
+ nozzleLight.intensity = 1.0 + Math.sin(t*8)*0.2;
+
+ printProgress += dt*0.01;
+ if(printProgress > 0.95) printProgress = 0.2;
+ clipPlane.constant = -0.78 + printProgress*1.55;
+
+ spool.rotation.x += dt*0.3;
+
+ const pos = particleGeo.attributes.position.array;
+ for(let i=0;i<particleCount;i++){
+ pos[i*3+1] += dt*0.05;
+ if(pos[i*3+1] > 4.5) pos[i*3+1] = -1.5;
+ }
+ particleGeo.attributes.position.needsUpdate = true;
+
+ // (HUD readout removed from hero markup — printProgress still drives the clip-plane reveal above)
+
+ // smooth camera dolly-in over the first ~2.8s, eased
+ if(t < 2.8){
+ const p = 1 - Math.pow(1 - Math.min(t/2.8,1), 3);
+ camera.position.lerpVectors(camStart, camEnd, p);
+ camera.lookAt(lookTarget);
+ }
+
+ composer.render();
+ }
+
+ window.addEventListener('mousemove', (e)=>{
+ mouseX = (e.clientX / window.innerWidth - 0.5);
+ mouseY = (e.clientY / window.innerHeight - 0.5);
+ });
+ // gentle parallax from touch drag on mobile (passive, doesn't block page scroll)
+ window.addEventListener('touchmove', (e)=>{
+ if(!e.touches || !e.touches[0]) return;
+ mouseX = (e.touches[0].clientX / window.innerWidth - 0.5);
+ mouseY = (e.touches[0].clientY / window.innerHeight - 0.5);
+ }, {passive:true});
+
+ window.addEventListener('resize', ()=>{
+ camera.aspect = window.innerWidth/window.innerHeight;
+ camera.updateProjectionMatrix();
+ renderer.setSize(window.innerWidth, window.innerHeight);
+ composer.setSize(window.innerWidth, window.innerHeight);
+ });
+ window.addEventListener('orientationchange', ()=>{
+ setTimeout(()=>{
+ camera.aspect = window.innerWidth/window.innerHeight;
+ camera.updateProjectionMatrix();
+ renderer.setSize(window.innerWidth, window.innerHeight);
+ composer.setSize(window.innerWidth, window.innerHeight);
+ }, 200);
+ });
+
+ animate();
+
+ setTimeout(()=>{
+ const loading = document.getElementById('loading');
+ loading.style.opacity = 0;
+ setTimeout(()=> loading.style.visibility='hidden', 1000);
+ }, 900);
+}
+</script>
+
+</body>
+</html>
