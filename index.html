@@ -1362,7 +1362,7 @@ footer{background:linear-gradient(135deg,#e8e0f9,#ddd4f3)!important;border-top-c
  <div class="wrap">
  <div class="section-head reveal">
  <div class="tag section-icon-tag"><span class="section-mini-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3h10M7 21h10M8 3v4l4 5-4 5v4M16 3v4l-4 5 4 5v4"/><path d="M8 12h8"/></svg></span>Instant Pricing</div>
- <h2>Get a quote in seconds.</h2>
+ <h2>Get a market-based quote in seconds.</h2>
  <p>Enter your part dimensions and we'll estimate material use, print time, and total cost. Final pricing is confirmed once we review your uploaded file.</p>
  </div>
 
@@ -1426,14 +1426,14 @@ footer{background:linear-gradient(135deg,#e8e0f9,#ddd4f3)!important;border-top-c
 
  <div class="quote-result">
  <div class="cap">Estimated Total</div>
- <div class="quote-price"><span class="cur">$</span><span id="qTotal">0.00</span></div>
+ <div class="quote-price"><span class="cur">₹</span><span id="qTotal">0</span></div>
  <div class="quote-eta" id="qEta">Est. print time: —</div>
 
  <div class="quote-breakdown">
- <div class="row"><span>Material (<span id="qMatName">PLA</span>)</span><span id="qMatCost">$0.00</span></div>
+ <div class="row"><span>Material (<span id="qMatName">PLA</span>)</span><span id="qMatCost">₹0</span></div>
  <div class="row"><span>Estimated weight</span><span id="qWeight">0 g</span></div>
- <div class="row"><span>Machine time</span><span id="qTimeCost">$0.00</span></div>
- <div class="row"><span>Setup fee</span><span id="qSetup">$0.00</span></div>
+ <div class="row"><span>Machine time</span><span id="qTimeCost">₹0</span></div>
+ <div class="row"><span>Setup fee</span><span id="qSetup">₹0</span></div>
  <div class="row"><span>Quantity</span><span id="qQtyShow">1</span></div>
  </div>
 
@@ -1442,7 +1442,7 @@ footer{background:linear-gradient(135deg,#e8e0f9,#ddd4f3)!important;border-top-c
  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
  </button>
 
- <p class="quote-note">This is an automated estimate based on bounding-box volume, not sliced geometry — actual cost may vary once we review your file. Rates shown are indicative and configurable by our team.</p>
+ <p class="quote-note">This is an INR market-benchmarked estimate based on bounding-box volume. A ₹350 minimum order applies. Final pricing is confirmed from your STL/3MF after slicing because supports, walls, orientation, actual material usage, finishing and delivery can change the cost.</p>
  </div>
  </div>
  </div>
@@ -1616,23 +1616,25 @@ setTimeout(()=>{
 }, 3000);
 
 /* ==========================================================================
- INSTANT QUOTE CALCULATOR
- All rates below are placeholder example values — swap them for our
- V3D's real per-gram material costs and machine hourly rate before launch.
- The estimate uses bounding-box volume (L*W*H), not sliced geometry, so it
- will not exactly match a real slicer — that's stated to the customer in
- the quote-note copy so expectations are set correctly.
+ INSTANT QUOTE CALCULATOR — INDIA / INR
+ Market-benchmarked starting rates. Exact pricing requires the STL/3MF to be
+ sliced because walls, supports, orientation and actual machine time are not
+ knowable from a bounding box alone. Public Indian pricing benchmarks checked
+ in September 2026 include about ₹6/g for FDM PLA and roughly ₹8–18/g for
+ typical finished prototype parts. The rates below are conservative market
+ benchmarks, not a binding final quotation.
  ========================================================================== */
 const MATERIALS = {
- PLA: { label:'PLA', density: 1.24, pricePerGram: 4.0 }, // ₹ per gram
- PETG: { label:'PETG', density: 1.27, pricePerGram: 5.0 },
- ABS: { label:'ABS', density: 1.04, pricePerGram: 4.5 },
- TPU: { label:'TPU', density: 1.21, pricePerGram: 7.5 },
- RESIN: { label:'Resin', density: 1.10, pricePerGram: 9.0 }
+ PLA:   { label:'PLA',   density:1.24, pricePerGram:8.0 },
+ PETG:  { label:'PETG',  density:1.27, pricePerGram:10.0 },
+ ABS:   { label:'ABS',   density:1.04, pricePerGram:10.0 },
+ TPU:   { label:'TPU',   density:1.21, pricePerGram:12.0 },
+ RESIN: { label:'Resin', density:1.10, pricePerGram:30.0 }
 };
-const MACHINE_RATE_PER_HOUR = 120; // ₹ per hour of machine time
-const SETUP_FEE = 60; // ₹ flat fee per distinct print job
-const BASE_PRINT_SPEED_CM3_PER_HR = 18; // baseline volumetric print rate at 35% infill, standard quality
+const MACHINE_RATE_PER_HOUR = 120;
+const SETUP_FEE = 60;
+const MINIMUM_ORDER = 350;
+const BASE_PRINT_SPEED_CM3_PER_HR = 18;
 
 const QUALITY_TIME_MULTIPLIER = { draft: 0.7, standard: 1.0, fine: 1.6 };
 
@@ -1684,9 +1686,10 @@ function calculateQuote(){
  const totalTimeCost = timeCostPerUnit * qty;
  const totalWeight = weightGrams * qty;
  const totalHours = printHoursPerUnit * qty;
- const grandTotal = totalMaterialCost + totalTimeCost + SETUP_FEE;
+ const calculatedTotal = totalMaterialCost + totalTimeCost + SETUP_FEE;
+ const grandTotal = Math.max(MINIMUM_ORDER, calculatedTotal);
 
- document.getElementById('qTotal').textContent = grandTotal.toFixed(2);
+ document.getElementById('qTotal').textContent = Math.round(grandTotal).toLocaleString('en-IN');
  document.getElementById('qMatName').textContent = mat.label;
  document.getElementById('qMatCost').textContent = '₹' + totalMaterialCost.toFixed(2);
  document.getElementById('qWeight').textContent = totalWeight.toFixed(1) + ' g';
@@ -1764,44 +1767,6 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
-
-function makeBrandTexture(){
- const c = document.createElement('canvas');
- c.width = 512; c.height = 128;
- const ctx = c.getContext('2d');
- ctx.clearRect(0,0,512,128);
- ctx.textAlign = 'left';
- ctx.textBaseline = 'alphabetic';
- ctx.fillStyle = '#1c1730';
- ctx.font = '700 62px Arial, sans-serif';
- ctx.fillText('V3D', 14, 72);
- ctx.fillStyle = '#4c3aa8';
- ctx.font = '600 22px Arial, sans-serif';
- ctx.letterSpacing = '3px';
- ctx.fillText('PRINTLAB', 16, 102);
- const tex = new THREE.CanvasTexture(c);
- tex.colorSpace = THREE.SRGBColorSpace;
- tex.needsUpdate = true;
- return tex;
-}
-
-function makePanelLabelTexture(){
- const c = document.createElement('canvas');
- c.width = 512; c.height = 160;
- const ctx = c.getContext('2d');
- ctx.clearRect(0,0,512,160);
- ctx.fillStyle = 'rgba(40,32,70,0.82)';
- ctx.textAlign = 'left';
- ctx.font = '600 30px Arial, sans-serif';
- ctx.fillText('IDEAS', 10, 46);
- ctx.fillText('LAYER', 10, 92);
- ctx.fillText('BY LAYER', 10, 138);
- const tex = new THREE.CanvasTexture(c);
- tex.colorSpace = THREE.SRGBColorSpace;
- tex.needsUpdate = true;
- return tex;
-}
 
 window.addEventListener('DOMContentLoaded', ()=>{
  try{
@@ -1835,9 +1800,9 @@ function init(){
 
  const camera = new THREE.PerspectiveCamera(isMobile ? 46: 36, window.innerWidth/window.innerHeight, 0.1, 200);
  // on narrow screens, pull back and re-center so the printer stays framed instead of cropped
- const camStart = isMobile ? new THREE.Vector3(9.5, 6.2, 15.5): new THREE.Vector3(14.8, 5.2, 14.0);
- const camEnd = isMobile ? new THREE.Vector3(5.6, 4.2, 11.5): new THREE.Vector3(10.4, 3.3, 9.7);
- const lookTarget = isMobile ? new THREE.Vector3(4.2, 0.7, 0): new THREE.Vector3(7.0, 1.35, 0);
+ const camStart = isMobile ? new THREE.Vector3(7.5, 6.2, 15.5): new THREE.Vector3(10.8, 5.2, 14.0);
+ const camEnd = isMobile ? new THREE.Vector3(4.0, 4.2, 11.5): new THREE.Vector3(7.4, 3.3, 9.7);
+ const lookTarget = isMobile ? new THREE.Vector3(2.6, 0.7, 0): new THREE.Vector3(3.8, 1.35, 0);
  camera.position.copy(camStart);
  camera.lookAt(lookTarget);
 
@@ -1891,16 +1856,10 @@ function init(){
  const matSteelDark = new THREE.MeshPhysicalMaterial({color:0x8d83a8, metalness:0.86, roughness:0.24, envMapIntensity:1.65, clearcoat:0.45, clearcoatRoughness:0.28});
  const matSteelLight = new THREE.MeshPhysicalMaterial({color:0xd6d0e4, metalness:0.84, roughness:0.20, envMapIntensity:1.7, clearcoat:0.55, clearcoatRoughness:0.22});
  const matAluminum = new THREE.MeshPhysicalMaterial({color:0xe7e2f0, metalness:0.9, roughness:0.14, envMapIntensity:1.8, clearcoat:0.6, clearcoatRoughness:0.18});
- const matGlassDark = new THREE.MeshPhysicalMaterial({
- color:0x2a2340, metalness:0, roughness:0.05, transmission:0.88, thickness:0.6, ior:1.45,
- transparent:true, opacity:0.55, envMapIntensity:1.6, clearcoat:1, clearcoatRoughness:0.05, side: THREE.DoubleSide
- });
  const matGlass = new THREE.MeshPhysicalMaterial({
  color:0xd7c9f2, metalness:0, roughness:0.035, transmission:0.94, thickness:0.5, ior:1.45,
  transparent:true, opacity:0.32, envMapIntensity:1.4, clearcoat:1, clearcoatRoughness:0.06, side: THREE.DoubleSide
  });
- const matBrand = new THREE.MeshBasicMaterial({map: makeBrandTexture(), transparent:true});
- const matPanelLabel = new THREE.MeshBasicMaterial({map: makePanelLabelTexture(), transparent:true});
  const matCyanEmissive = new THREE.MeshStandardMaterial({color:0x33205f, emissive:0x6d43e8, emissiveIntensity:1.7, metalness:0.45, roughness:0.32});
  const matAmberEmissive = new THREE.MeshStandardMaterial({color:0x5a365e, emissive:0xffa16f, emissiveIntensity:2.0, metalness:0.3, roughness:0.35});
  const matBedDark = new THREE.MeshPhysicalMaterial({color:0x4b3d69, metalness:0.72, roughness:0.28, envMapIntensity:1.35, clearcoat:0.45});
@@ -1909,7 +1868,7 @@ function init(){
  const printer = new THREE.Group();
  scene.add(printer);
 
- const base = new THREE.Mesh(new RoundedBoxGeometry(4.6, 0.5, 3.5, 4, 0.09), matSteelDark);
+ const base = new THREE.Mesh(new THREE.BoxGeometry(4.4, 0.5, 3.4), matSteelDark);
  base.position.set(0, -1.7, 0);
  base.castShadow = true; base.receiveShadow = true;
  printer.add(base);
@@ -1917,17 +1876,6 @@ function init(){
  const trim = new THREE.Mesh(new THREE.BoxGeometry(4.42, 0.04, 3.42), matCyanEmissive);
  trim.position.set(0, -1.44, 0);
  printer.add(trim);
-
- // Lower solid front control fascia (silver-white), spans most of the front below the glass.
- const lowerFront = new THREE.Mesh(new RoundedBoxGeometry(4.2, 0.62, 3.3, 4, 0.06), matSteelLight);
- lowerFront.position.set(0, -1.34, 0);
- lowerFront.castShadow = true;
- printer.add(lowerFront);
-
- // "V3D / PRINTLAB" brand plate on upper front panel.
- const brandPlate = new THREE.Mesh(new THREE.PlaneGeometry(1.65, 0.42), matBrand);
- brandPlate.position.set(-1.15, 2.85, 1.77);
- printer.add(brandPlate);
 
  const railGeo = new THREE.CylinderGeometry(0.09, 0.09, 4.6, 16);
  const railPositions = [[-2.05,-1.9,-1.55],[2.05,-1.9,-1.55],[-2.05,-1.9,1.55],[2.05,-1.9,1.55]];
@@ -1938,55 +1886,39 @@ function init(){
  printer.add(r);
  });
 
- const topFrame = new THREE.Mesh(new RoundedBoxGeometry(4.6, 0.5, 3.5, 4, 0.09), matSteelLight);
- topFrame.position.set(0, 2.85, 0);
+ const topFrame = new THREE.Mesh(new THREE.BoxGeometry(4.4, 0.28, 3.4), matSteelDark);
+ topFrame.position.set(0, 2.75, 0);
  topFrame.castShadow = true;
  printer.add(topFrame);
 
- // Reference-inspired lower control fascia: glowing ring toward the right, panel text at left.
+ // Reference-inspired lower control fascia and top filament tube.
  const controlFascia = new THREE.Mesh(new THREE.BoxGeometry(4.0, 0.48, 0.18), matSteelLight);
- controlFascia.position.set(0, -1.34, 1.75);
+ controlFascia.position.set(0, -1.55, 1.70);
  printer.add(controlFascia);
- const controlRing = new THREE.Mesh(new THREE.TorusGeometry(0.19, 0.05, 16, 48), matCyanEmissive);
+ const controlRing = new THREE.Mesh(new THREE.TorusGeometry(0.19, 0.045, 16, 48), matCyanEmissive);
  controlRing.rotation.x = Math.PI/2;
- controlRing.position.set(1.55, -1.34, 1.85);
+ controlRing.position.set(1.45, -1.55, 1.82);
  printer.add(controlRing);
- const controlRingInner = new THREE.Mesh(new THREE.CircleGeometry(0.13, 32), matCyanEmissive);
- controlRingInner.position.set(1.55, -1.34, 1.855);
- printer.add(controlRingInner);
- const controlGlow = new THREE.PointLight(0x8a5cff, 1.1, 2.2, 2);
- controlGlow.position.set(1.55, -1.34, 1.9);
+ const controlGlow = new THREE.PointLight(0x7146e8, 0.75, 1.8, 2);
+ controlGlow.position.set(1.45, -1.55, 1.82);
  printer.add(controlGlow);
- const panelLabel = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 0.42), matPanelLabel);
- panelLabel.position.set(-1.5, -1.34, 1.855);
- printer.add(panelLabel);
-
- // Filament tube emerging from the top, curving backward.
- const tube = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.075, 14, 48, Math.PI*1.35), matSteelDark);
- tube.rotation.z = Math.PI*0.08;
- tube.rotation.y = Math.PI*0.04;
- tube.position.set(0.55, 3.55, -0.15);
+ const tube = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.075, 14, 48, Math.PI*1.45), matSteelDark);
+ tube.rotation.z = Math.PI*0.06;
+ tube.position.set(1.15, 3.15, -0.25);
  printer.add(tube);
 
- const glassFront = new THREE.Mesh(new THREE.PlaneGeometry(4.1, 3.7), matGlassDark);
- glassFront.position.set(0, 0.65, 1.72);
+ const glassFront = new THREE.Mesh(new THREE.PlaneGeometry(4.0, 4.1), matGlass);
+ glassFront.position.set(0, 0.5, 1.62);
  printer.add(glassFront);
- // slim metallic frame accents around the front glass
- const frameGeoTB = new THREE.BoxGeometry(4.16, 0.05, 0.04);
- const frameTop = new THREE.Mesh(frameGeoTB, matAluminum); frameTop.position.set(0, 2.48, 1.73); printer.add(frameTop);
- const frameBot = new THREE.Mesh(frameGeoTB, matAluminum); frameBot.position.set(0, -1.02, 1.73); printer.add(frameBot);
- const frameGeoLR = new THREE.BoxGeometry(0.05, 3.72, 0.04);
- const frameL = new THREE.Mesh(frameGeoLR, matAluminum); frameL.position.set(-2.06, 0.65, 1.73); printer.add(frameL);
- const frameR = new THREE.Mesh(frameGeoLR, matAluminum); frameR.position.set(2.06, 0.65, 1.73); printer.add(frameR);
 
- const glassSideR = new THREE.Mesh(new THREE.PlaneGeometry(3.0, 3.7), matGlassDark);
+ const glassSideR = new THREE.Mesh(new THREE.PlaneGeometry(3.0, 4.1), matGlass);
  glassSideR.rotation.y = Math.PI/2;
- glassSideR.position.set(2.17, 0.65, 0);
+ glassSideR.position.set(2.07, 0.5, 0);
  printer.add(glassSideR);
 
- const glassSideL = new THREE.Mesh(new THREE.PlaneGeometry(3.0, 3.7), matGlassDark);
+ const glassSideL = new THREE.Mesh(new THREE.PlaneGeometry(3.0, 4.1), matGlass);
  glassSideL.rotation.y = Math.PI/2;
- glassSideL.position.set(-2.17, 0.65, 0);
+ glassSideL.position.set(-2.07, 0.5, 0);
  printer.add(glassSideL);
 
  const bed = new THREE.Mesh(new THREE.CylinderGeometry(1.35, 1.35, 0.08, 48), matBedDark);
@@ -2059,8 +1991,7 @@ function init(){
    new THREE.Vector2(0.46,0.08), new THREE.Vector2(0.32,0.48), new THREE.Vector2(0.22,0.70),
    new THREE.Vector2(0.30,0.88), new THREE.Vector2(0.38,0.98)
  ];
- // low radial segment count gives the lathe visible facets, matching the geometric-vase reference
- const printGeo = new THREE.LatheGeometry(vaseProfile, 10);
+ const printGeo = new THREE.LatheGeometry(vaseProfile, 32);
  const printedObj = new THREE.Mesh(printGeo, matPrint);
  printedObj.position.set(0, 0.02, 0);
  printedObj.castShadow = true;
@@ -2106,7 +2037,7 @@ function init(){
  new THREE.MeshBasicMaterial({map: makeContactShadowTexture(), transparent:true, depthWrite:false})
  );
  contactShadow.rotation.x = -Math.PI/2;
- contactShadow.position.set(isMobile ? 4.4 : 7.5, -2.38, 0);
+ contactShadow.position.set(isMobile ? 2.6 : 4.25, -2.38, 0);
  scene.add(contactShadow);
 
  const particleCount = isMobile ? 50: 120;
@@ -2122,8 +2053,8 @@ function init(){
  const particles = new THREE.Points(particleGeo, particleMat);
  scene.add(particles);
 
- printer.position.set(isMobile ? 4.4 : 7.5, 0, 0);
- particles.position.set(isMobile ? 4.4 : 7.5,0,0);
+ printer.position.set(isMobile ? 2.6 : 4.25, 0, 0);
+ particles.position.set(isMobile ? 2.6 : 4.25,0,0);
 
  let t = 0;
  let printProgress = 0.42;
